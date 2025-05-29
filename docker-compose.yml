@@ -13,18 +13,10 @@ services:
       dockerfile: frontend/Dockerfile
     container_name: pong-frontend
     restart: on-failure
-    expose:
-      - "80"
-
-  nginx:
-    build: ./nginx
-    container_name: pong-nginx
-    restart: on-failure
     ports:
       - "8080:80"
     depends_on:
       - backend
-      - frontend
 
 networks:
   default:
