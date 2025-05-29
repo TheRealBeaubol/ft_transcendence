@@ -1,8 +1,31 @@
 version: '3.8'
 services:
+  backend:
+    build: ./backend
+    container_name: pong-backend
+    restart: on-failure
+    expose:
+      - "3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: pong-frontend
+    restart: on-failure
+    expose:
+      - "80"
+
   nginx:
     build: ./nginx
+    container_name: pong-nginx
+    restart: on-failure
     ports:
       - "8080:80"
-  backend:
-    image: nginx:stable-alpine  # conteneur fictif pour le test
+    depends_on:
+      - backend
+      - frontend
+
+networks:
+  default:
+    name: pong-net
