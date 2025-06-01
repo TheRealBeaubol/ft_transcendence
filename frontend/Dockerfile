@@ -1,15 +1,15 @@
-# Étape 1 : build du frontend
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY ./frontend/package.json ./
-RUN npm install
-RUN npm install react-router-dom
-COPY ./frontend .
-RUN npm run build
+FROM node:20-alpine AS base
 
-# Étape 2 : Nginx
-FROM nginx:stable-alpine
-COPY ./frontend/nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+COPY . .
+
+FROM base AS dev
+
+EXPOSE 5173
+CMD ["npm", "run", "dev"]
+
+FROM base AS prod
+
+RUN npm run build

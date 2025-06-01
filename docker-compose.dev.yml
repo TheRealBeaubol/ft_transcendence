@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-dev
+    image: backend-dev
+    restart: on-failure
+    expose:
+      - "3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: frontend-dev
+    image: frontend-dev
+    restart: on-failure
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  nginx-dev:
+    build:
+      context: ./frontend/nginx
+      dockerfile: Dockerfile
+      target: dev
+    container_name: nginx-dev
+    image: nginx-dev
+    restart: on-failure
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend/nginx/conf/dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+
+networks:
+  default:
+    name: pong-net

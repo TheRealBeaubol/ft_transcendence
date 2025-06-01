@@ -1,22 +1,38 @@
 version: '3.8'
+
 services:
   backend:
-    build: ./backend
-    container_name: pong-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    image: backend
     restart: on-failure
     expose:
       - "3000"
 
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
-    container_name: pong-frontend
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    container_name: frontend
+    image: frontend
+    restart: on-failure
+
+  nginx:
+    build:
+      context: ./frontend/nginx
+      dockerfile: Dockerfile
+      target: prod
+    container_name: nginx
+    image: nginx
     restart: on-failure
     ports:
       - "8080:80"
     depends_on:
       - backend
+      - frontend
 
 networks:
   default:
