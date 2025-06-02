@@ -43,7 +43,7 @@ export default function ProfileManagementBox() {
     const handleLogout = () => {
       localStorage.removeItem('jwt_token');
       setUser(null);
-      navigate('/');
+      navigate('/profile');
     };
 
     const handleSaveChanges = async () => {
@@ -134,20 +134,20 @@ export default function ProfileManagementBox() {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-6">
-                <span className="text-2xl text-center">
-                    Welcome <span className="text-cyan-400 font-bold">{user.username}</span>
+            <div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-4">
+                <span className="text-2xl text-center mb-10">
+                    Welcome <span className="text-cyan-400 font-bold ">{user.username}</span>
                 </span>
-                <input type="password" placeholder="Old Password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-                <input type="text" placeholder="New Username" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
+                <input type="text" placeholder="New Username" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
                 <input type="password" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-                <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-                <div className="flex align-center justify-between">
+                <input type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
+                <input type="password" placeholder="Old Password (Required)" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-12"/>
 
-                    <button onClick={handleSaveChanges} className="bg-green-600 hover:bg-green-700 rounded px-4 py-2 font-bold text-white transition">
+                <div className="flex align-center justify-between gap-16">
+                    <button onClick={handleSaveChanges} className="w-1/2 h-10 bg-green-600 hover:bg-green-700 rounded font-bold text-white transition ">
                         Save Changes
                     </button>
-                    <button onClick={handleLogout} className="bg-cyan-600 hover:bg-cyan-700 rounded px-4 py-2 font-bold text-white transition">
+                    <button onClick={handleLogout} className="w-1/2 bg-red-600 hover:bg-red-700 rounded font-bold text-white transition">
                         Log out
                     </button>
                 </div>

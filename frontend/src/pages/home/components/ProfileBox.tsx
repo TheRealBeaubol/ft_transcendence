@@ -68,7 +68,7 @@ export default function ProfileBox() {
               </span>
             </div>
               <button onClick={handleLogout}
-                className="absolute bottom-2 right-3 bg-cyan-600 hover:bg-cyan-700 rounded px-1 py-0.5 font-bold text-white transition">
+                className="absolute bottom-2 right-3 bg-red-600 hover:bg-red-700 rounded px-1 py-0.5 font-bold text-white transition">
                  Log-out
               </button>
           </div>

@@ -77,8 +77,3 @@ Accessibility
 
 TOTAL : 130/125     8 Major Module & 4 Minor Module
 
-Backend :
-    Dockerfile
-
-Frontend :
-    Dockerfile

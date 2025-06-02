@@ -3,6 +3,7 @@ import fastifyJwt from "@fastify/jwt";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { initDb } from "./db.js";
+import profileRoutes from "./profileRoutes.js";
 
 dotenv.config();
 
@@ -28,70 +29,74 @@ fastify.decorate("authenticate", async (request, reply) => {
 });
 
 let db;
+
 (async () => {
   db = await initDb();
   fastify.log.info("Base SQLite initialisée");
-})();
 
-const userSchema = {
-  type: "object",
-  required: ["username", "password"],
-  properties: {
-    username: { type: "string", minLength: 3 },
-    password: { type: "string", minLength: 6 }
-  }
-};
+  // Enregistre la route PUT /api/profile
+  await fastify.register(profileRoutes);
 
-fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
+  fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
 
-fastify.post("/api/register", { schema: { body: userSchema } }, async (request, reply) => {
-  const { username, password } = request.body;
-  try {
-    const existing = await db.get("SELECT id FROM users WHERE username = ?", username);
-    if (existing) {
-      return reply.code(400).send({ error: "Username déjà utilisé" });
+  // Les autres routes (register, login, profile GET) restent ici
+  const userSchema = {
+    type: "object",
+    required: ["username", "password"],
+    properties: {
+      username: { type: "string", minLength: 3 },
+      password: { type: "string", minLength: 6 }
     }
-    const saltRounds = 10;
-    const hashed = await bcrypt.hash(password, saltRounds);
-    const result = await db.run(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      username,
-      hashed
-    );
-    return reply.code(201).send({ id: result.lastID, username });
-  } catch (err) {
-    request.log.error(err);
-    return reply.code(500).send({ error: "Erreur interne" });
-  }
-});
+  };
 
-fastify.post("/api/login", { schema: { body: userSchema } }, async (request, reply) => {
-  const { username, password } = request.body;
-  try {
-    const user = await db.get("SELECT id, password FROM users WHERE username = ?", username);
-    if (!user) {
-      return reply.code(400).send({ error: "Utilisateur non trouvé" });
+  fastify.post("/api/register", { schema: { body: userSchema } }, async (request, reply) => {
+    const { username, password } = request.body;
+    try {
+      const existing = await db.get("SELECT id FROM users WHERE username = ?", username);
+      if (existing) {
+        return reply.code(400).send({ error: "Username déjà utilisé" });
+      }
+      const saltRounds = 10;
+      const hashed = await bcrypt.hash(password, saltRounds);
+      const result = await db.run(
+        "INSERT INTO users (username, password) VALUES (?, ?)",
+        username,
+        hashed
+      );
+      return reply.code(201).send({ id: result.lastID, username });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: "Erreur interne" });
     }
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return reply.code(400).send({ error: "Mot de passe incorrect" });
+  });
+
+  fastify.post("/api/login", { schema: { body: userSchema } }, async (request, reply) => {
+    const { username, password } = request.body;
+    try {
+      const user = await db.get("SELECT id, password FROM users WHERE username = ?", username);
+      if (!user) {
+        return reply.code(400).send({ error: "Utilisateur non trouvé" });
+      }
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        return reply.code(400).send({ error: "Mot de passe incorrect" });
+      }
+      const token = fastify.jwt.sign({ id: user.id, username });
+      return reply.send({ token });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: "Erreur interne" });
     }
-    const token = fastify.jwt.sign({ id: user.id, username });
-    return reply.send({ token });
-  } catch (err) {
-    request.log.error(err);
-    return reply.code(500).send({ error: "Erreur interne" });
-  }
-});
+  });
 
-fastify.get("/api/profile", {
-  preValidation: [fastify.authenticate]
-}, async (request, reply) => {
-  const user = request.user;
-  return { id: user.id, username: user.username };
-});
+  fastify.get("/api/profile", {
+    preValidation: [fastify.authenticate]
+  }, async (request, reply) => {
+    const user = request.user;
+    return { id: user.id, username: user.username };
+  });
 
-const start = async () => {
+  // Démarre le serveur
   try {
     await fastify.listen({ port: Number(PORT), host: "0.0.0.0" });
     fastify.log.info(`Serveur démarré sur le port ${PORT}`);
@@ -99,5 +104,4 @@ const start = async () => {
     fastify.log.error(err);
     process.exit(1);
   }
-};
-start();
+})();
