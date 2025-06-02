@@ -10,6 +10,11 @@ services:
     restart: on-failure
     expose:
       - "3000"
+    volumes:
+      - ./backend/data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
 
   frontend:
     build:
