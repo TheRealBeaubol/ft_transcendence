@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import { initDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
+import friendRoutes from "./friendRoutes.js";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ let db;
 	fastify.log.info("Base SQLite initialisée");
 
 	await fastify.register(profileRoutes);
+	await fastify.register(friendRoutes);
 
 	fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
 
