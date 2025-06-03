@@ -34,23 +34,31 @@ let db;
   db = await initDb();
   fastify.log.info("Base SQLite initialisée");
 
-  // Enregistre la route PUT /api/profile
   await fastify.register(profileRoutes);
 
   fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
 
-  // Les autres routes (register, login, profile GET) restent ici
-  const userSchema = {
+  const registerSchema = {
     type: "object",
-    required: ["username", "password"],
+    required: ["username", "password", "email"],
     properties: {
       username: { type: "string", minLength: 3 },
+      password: { type: "string", minLength: 6 },
+      email: { type: "string", format: "email" }
+    }
+  };
+
+  const loginSchema = {
+    type: "object",
+    required: ["identifier", "password"],
+    properties: {
+      identifier: { type: "string", minLength: 3 },
       password: { type: "string", minLength: 6 }
     }
   };
 
-  fastify.post("/api/register", { schema: { body: userSchema } }, async (request, reply) => {
-    const { username, password } = request.body;
+  fastify.post("/api/register", { schema: { body: registerSchema } }, async (request, reply) => {
+    const { username, password, email} = request.body;
     try {
       const existing = await db.get("SELECT id FROM users WHERE username = ?", username);
       if (existing) {
@@ -59,9 +67,10 @@ let db;
       const saltRounds = 10;
       const hashed = await bcrypt.hash(password, saltRounds);
       const result = await db.run(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
+        "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
         username,
-        hashed
+        hashed,
+        email
       );
       return reply.code(201).send({ id: result.lastID, username });
     } catch (err) {
@@ -70,18 +79,25 @@ let db;
     }
   });
 
-  fastify.post("/api/login", { schema: { body: userSchema } }, async (request, reply) => {
-    const { username, password } = request.body;
+  fastify.post("/api/login", { schema: { body: loginSchema } }, async (request, reply) => {
+    const { identifier, password } = request.body;
     try {
-      const user = await db.get("SELECT id, password FROM users WHERE username = ?", username);
+      const user = await db.get(
+        "SELECT id, username, password FROM users WHERE username = ? OR email = ?",
+        identifier,
+        identifier
+      );
+  
       if (!user) {
         return reply.code(400).send({ error: "Utilisateur non trouvé" });
       }
+  
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
         return reply.code(400).send({ error: "Mot de passe incorrect" });
       }
-      const token = fastify.jwt.sign({ id: user.id, username });
+  
+      const token = fastify.jwt.sign({ id: user.id, username: user.username });
       return reply.send({ token });
     } catch (err) {
       request.log.error(err);
@@ -92,8 +108,11 @@ let db;
   fastify.get("/api/profile", {
     preValidation: [fastify.authenticate]
   }, async (request, reply) => {
-    const user = request.user;
-    return { id: user.id, username: user.username };
+    const user = await db.get("SELECT id, username FROM users WHERE id = ?", request.user.id);
+    if (!user) {
+      return reply.code(404).send({ error: "Utilisateur non trouvé" });
+    }
+    return user;
   });
 
   // Démarre le serveur

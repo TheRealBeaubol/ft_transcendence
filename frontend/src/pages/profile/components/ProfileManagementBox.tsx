@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../../UserContext';
 
 interface User {
     id: number;
@@ -8,7 +9,10 @@ interface User {
 
 export default function ProfileManagementBox() {
     const navigate = useNavigate();
-    const [user, setUser] = useState<User | null>(null);
+
+    const { user, setUser, refreshUser } = useUser();
+
+    const [newEmail, setNewEmail] = useState('');
     const [oldPassword, setOldPassword] = useState('');
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -46,9 +50,14 @@ export default function ProfileManagementBox() {
       navigate('/profile');
     };
 
-    const handleSaveChanges = async () => {
+  const handleSaveChanges = async () => {
   if (!oldPassword) {
     alert('Veuillez entrer votre mot de passe actuel.');
+    return;
+  }
+
+  if (newEmail && !/^\S+@\S+\.\S+$/.test(newEmail)) {
+    alert('Veuillez entrer une adresse email valide.');
     return;
   }
 
@@ -63,7 +72,7 @@ export default function ProfileManagementBox() {
     }
   }
 
-  if (!newUsername && !newPassword) {
+  if (!newUsername && !newPassword && !newEmail) {
     alert('Aucune modification détectée.');
     return;
   }
@@ -78,6 +87,7 @@ export default function ProfileManagementBox() {
     oldPassword,
     ...(newUsername && { newUsername }),
     ...(newPassword && { newPassword }),
+    ...(newEmail && { newEmail })
   };
 
   try {
@@ -99,14 +109,13 @@ export default function ProfileManagementBox() {
     }
 
     alert('Modifications enregistrées.');
-    if (newUsername) {
-      setUser(prev => prev ? { ...prev, username: newUsername } : null);
-    }
+    await refreshUser();
 
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
     setNewUsername('');
+    setNewEmail('');
 
   } catch (err) {
     console.error(err);
@@ -132,12 +141,14 @@ export default function ProfileManagementBox() {
     );
   }
   return (
+    
     <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-4">
                 <span className="text-2xl text-center mb-10">
                     Welcome <span className="text-cyan-400 font-bold ">{user.username}</span>
                 </span>
+                <input type="email" placeholder="New Email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
                 <input type="text" placeholder="New Username" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
                 <input type="password" placeholder="New Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
                 <input type="password" placeholder="Confirm New Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
