@@ -64,6 +64,10 @@ let db;
       if (existing) {
         return reply.code(400).send({ error: "Username déjà utilisé" });
       }
+      const existingEmail = await db.get("SELECT id FROM users WHERE email = ?", email);
+      if (existingEmail) {
+        return reply.code(400).send({ error: "Email déjà utilisé" });
+      }
       const defaultAvatar = "https://i.pinimg.com/1200x/35/99/27/359927d1398df943a13c227ae0468357.jpg"; // URL d'avatar par défaut
       const saltRounds = 10;
       const hashed = await bcrypt.hash(password, saltRounds);
