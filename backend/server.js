@@ -64,13 +64,15 @@ let db;
       if (existing) {
         return reply.code(400).send({ error: "Username déjà utilisé" });
       }
+      const defaultAvatar = "https://i.pinimg.com/1200x/35/99/27/359927d1398df943a13c227ae0468357.jpg"; // URL d'avatar par défaut
       const saltRounds = 10;
       const hashed = await bcrypt.hash(password, saltRounds);
       const result = await db.run(
-        "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
+        "INSERT INTO users (username, password, email, avatar) VALUES (?, ?, ?, ?)",
         username,
         hashed,
-        email
+        email,
+        defaultAvatar
       );
       return reply.code(201).send({ id: result.lastID, username });
     } catch (err) {
@@ -103,16 +105,6 @@ let db;
       request.log.error(err);
       return reply.code(500).send({ error: "Erreur interne" });
     }
-  });
-
-  fastify.get("/api/profile", {
-    preValidation: [fastify.authenticate]
-  }, async (request, reply) => {
-    const user = await db.get("SELECT id, username FROM users WHERE id = ?", request.user.id);
-    if (!user) {
-      return reply.code(404).send({ error: "Utilisateur non trouvé" });
-    }
-    return user;
   });
 
   // Démarre le serveur

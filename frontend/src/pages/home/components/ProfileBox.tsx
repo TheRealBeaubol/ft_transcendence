@@ -59,9 +59,9 @@ export default function ProfileBox() {
   return (
       <div className="fixed right-0 w-72 bg-cyan-500 p-1 rounded-bl-full">
         <div className="relative bg-black bg-opacity-80 rounded-bl-full px-6 py-2 font-mono text-sm text-white pb-3">
-          <div className="flex gap-3">
-            <div className="w-16 h-16 rounded-full border-2 border-white bg-black"></div>
-            <div className="flex flex-col">
+          <div className="flex gap-4 px-4">
+            {user.avatar && (<img src={user.avatar} alt="Avatar" className="w-20 h-20 rounded-full border-2 border-cyan-300"/>)}
+            <div className="flex flex-col py-2">
               <span className="text-sm">{user.username}</span>
               <span onClick={() => navigate('/profile')} className="text-sm underline cursor-pointer">
                 Edit Profile
