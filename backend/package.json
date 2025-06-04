@@ -14,6 +14,7 @@
         "fastify": "^4.29.1",
         "fastify-plugin": "^5.0.1",
         "fastify-websocket": "^4.3.0",
+        "jsonwebtoken": "^9.0.2",
         "sqlite": "^5.1.1",
         "sqlite3": "^5.1.7"
     },

@@ -8,8 +8,8 @@ services:
     container_name: backend-dev
     image: backend-dev
     restart: on-failure
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     volumes:
       - ./backend/data:/app/data
     environment:

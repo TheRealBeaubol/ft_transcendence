@@ -2,9 +2,11 @@ import Fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import { initDb } from "./db.js";
+import jwt from "jsonwebtoken";
+import { initDb, openDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
 import friendRoutes from "./friendRoutes.js";
+import fastifyWebsocket from "fastify-websocket";
 
 dotenv.config();
 
@@ -16,6 +18,87 @@ if (!JWT_SECRET) {
 }
 
 const fastify = Fastify({ logger: true });
+fastify.register(fastifyWebsocket);
+
+const activeUsers = new Map();
+
+fastify.get( '/api/friend-status', { websocket: true }, async (connection, req) => {
+	  console.log("→ Nouvelle tentative de connexion WebSocket (avant JWT)");
+  
+	  const rawUrl = req.url;  
+	  console.log("URL brute de la requête WebSocket :", rawUrl);
+  
+	  const parts = rawUrl.split('?');
+	  console.log("Parts de l'URL :", parts);
+  
+	  let token = null;
+	  if (parts.length > 1) {
+		console.log("→ URL contient des paramètres, extraction du token");
+		const queryString = parts[1];
+		console.log("→ Chaîne de requête extraite :", queryString);
+		const params = new URLSearchParams(queryString);
+		console.log("→ Paramètres extraits :", Array.from(params.entries()));
+  
+		token = params.get('token');
+		console.log("→ Token extrait :", token);
+	  }
+  
+	  const userId = verifyTokenAndGetUserId(token);
+	  if (!userId) {
+		console.log("Token invalide ou absent, fermeture WS");
+		connection.socket.end();
+		return;
+	  }
+  
+	  console.log("Client WS connecté pour userId =", userId);
+	  activeUsers.set(userId, connection.socket);
+  
+	  await notifyFriendsStatusChange(userId, true);
+  
+	  connection.socket.on('close', async () => {
+		console.log("Client WS déconnecté pour userId =", userId);
+		activeUsers.delete(userId);
+		await notifyFriendsStatusChange(userId, false);
+	  });
+  
+	  connection.socket.on('message', msg => {
+		console.log("WS message de", userId, ":", msg.toString());
+	  });
+	}
+  );
+
+function verifyTokenAndGetUserId(token) {
+	try {
+		if (!token) {
+			console.log("Token absent, impossible de vérifier l'utilisateur");
+			return null;
+		}
+		const decoded = jwt.verify(token, JWT_SECRET);
+		return decoded.id;
+	} catch (e) {
+		console.error("Erreur de vérification du token :", e.message);
+		return null;
+	}
+}
+
+async function notifyFriendsStatusChange(userId, isOnline) {
+    const db = await openDb();
+
+    const friends = await db.all(
+        `SELECT friend_id FROM friends WHERE user_id = ?`, [userId]
+    );
+
+    for (const friend of friends) {
+        const friendSocket = activeUsers.get(friend.friend_id);
+        if (friendSocket) {
+            friendSocket.send(JSON.stringify({
+                type: 'friend_status',
+                userId,
+                online: isOnline,
+            }));
+        }
+    }
+}
 
 fastify.register(fastifyJwt, {
 	secret: JWT_SECRET

@@ -6,6 +6,10 @@ type Friend = {
 	avatar?: string;
 };
 
+type FriendStatus = {
+	[userId: number]: boolean;
+};
+
 type FriendRequest = {
 	id: number;
 	requester: Friend;
@@ -22,13 +26,17 @@ export default function FriendList() {
 	const [showModal, setShowModal] = useState(false);
 	const [showFriendRequests, setShowFriendRequests] = useState(false);
 	const [friendToDelete, setFriendToDelete] = useState<Friend | null>(null);
+	const [friendStatus, setFriendStatus] = useState<FriendStatus>({});
 
 	useEffect(() => {
 		async function fetchData() {
 			try {
+				const token = localStorage.getItem('jwt_token');
+				if (!token) return;
+
 				setLoading(true);
 				const resFriends = await fetch('/api/friends', {
-					headers: { Authorization: `Bearer ${localStorage.getItem('jwt_token')}` },
+					headers: { Authorization: `Bearer ${token}` },
 					credentials: 'include',
 				});
 				if (!resFriends.ok) throw new Error('Erreur lors du chargement des amis');
@@ -36,7 +44,7 @@ export default function FriendList() {
 				setFriends(friendsData);
 
 				const resRequests = await fetch('/api/friend-requests/received', {
-					headers: { Authorization: `Bearer ${localStorage.getItem('jwt_token')}` },
+					headers: { Authorization: `Bearer ${token}` },
 					credentials: 'include',
 				});
 				if (!resRequests.ok) throw new Error('Erreur lors du chargement des demandes');
@@ -51,6 +59,41 @@ export default function FriendList() {
 		}
 		fetchData();
 	}, []);
+
+	useEffect(() => {
+		const token = localStorage.getItem('jwt_token');
+		if (!token) return;
+	  
+		const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
+		ws.onopen = () => {
+		  console.log("✅ WebSocket connecté");
+		};
+		ws.onerror = (err) => {
+		  console.error("🚨 WebSocket erreur :", err);
+		};
+		ws.onmessage = (event) => {
+		  try {
+			const data = JSON.parse(event.data);
+			if (data.type === 'friend_status') {
+			  setFriendStatus(prev => ({
+				...prev,
+				[data.userId]: data.isOnline,
+			  }));
+			}
+		  } catch (e) {
+			console.warn("⛔ Donnée WS inattendue :", event.data);
+		  }
+		};
+		ws.onclose = () => {
+		  console.warn('❌ WebSocket déconnecté');
+		};
+		return () => {
+		  ws.close();
+		};
+	  }, []);
+	  
+	  
+
 
 	const handleAddFriend = async () => {
 		try {
@@ -140,7 +183,8 @@ export default function FriendList() {
 							<li key={friend.id} className="flex items-center justify-between mb-2 max-w-full">
 								<div className="flex items-center gap-3 max-w-[calc(100%-40px)]">
 									<img src={friend.avatar} alt={friend.username} className="w-8 h-8 rounded-full flex-shrink-0" />
-									<span className="truncate">
+									<span className={`inline-block ml-2 w-2.5 h-2.5 rounded-full ${friendStatus[friend.id] ? 'bg-green-500' : 'bg-gray-400'}`}/>
+									<span className="truncate">	
 										{friend.username}
 									</span>
 								</div>
