@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterBox() {
 
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
+	const [showPassword, setShowPassword] = useState(false);
 	const [email, setEmail] = useState('');
 	const navigate = useNavigate();
 
@@ -39,9 +41,14 @@ export default function RegisterBox() {
 					<input type="text" placeholder="Username"
 						value={username} onChange={(e) => setUsername(e.target.value)}
 						className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
-					<input type="password" placeholder="Password"
-						value={password} onChange={(e) => setPassword(e.target.value)}
-						className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"/>
+					<div className="relative">
+						<input type={showPassword ? "text" : "password"} placeholder="Password"
+							value={password} onChange={(e) => setPassword(e.target.value)}
+							className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full"/>
+						<button type="button" onClick={() => setShowPassword(prev => !prev)} className="absolute right-3 top-2.5 text-cyan-300 hover:text-white">
+							{showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+						</button>
+					</div>
 					<p className="text-sm text-cyan-200 text-center">
 						You already have an account?{' '}
 						<a href="/login" className="underline text-cyan-300 hover:text-cyan-400">
