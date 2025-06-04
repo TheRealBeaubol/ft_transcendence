@@ -62,9 +62,12 @@ export default function FriendList() {
 
 	useEffect(() => {
 		const token = localStorage.getItem('jwt_token');
+		console.log ("🔑 Token récupéré :", token);
 		if (!token) return;
 	  
-		const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
+		console.log("🔗 Connexion WebSocket...");
+		const ws = new WebSocket("ws://localhost:3000/api/friend-status", [token]);
+		console.log("🔗 WebSocket créé :", ws);
 		ws.onopen = () => {
 		  console.log("✅ WebSocket connecté");
 		};

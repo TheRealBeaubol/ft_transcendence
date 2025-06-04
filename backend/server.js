@@ -22,50 +22,37 @@ fastify.register(fastifyWebsocket);
 
 const activeUsers = new Map();
 
-fastify.get( '/api/friend-status', { websocket: true }, async (connection, req) => {
-	  console.log("→ Nouvelle tentative de connexion WebSocket (avant JWT)");
+fastify.get('/api/friend-status', { websocket: true }, (connection, req) => {
+	console.log("→ Nouvelle tentative de connexion WebSocket (avant JWT)");
   
-	  const rawUrl = req.url;  
-	  console.log("URL brute de la requête WebSocket :", rawUrl);
+	const headers = req?.headers;
+	console.log("→ Headers de la requête :", headers);
   
-	  const parts = rawUrl.split('?');
-	  console.log("Parts de l'URL :", parts);
+	const token = headers?.['sec-websocket-protocol'];
+	console.log("→ Token extrait depuis subprotocol :", token);
   
-	  let token = null;
-	  if (parts.length > 1) {
-		console.log("→ URL contient des paramètres, extraction du token");
-		const queryString = parts[1];
-		console.log("→ Chaîne de requête extraite :", queryString);
-		const params = new URLSearchParams(queryString);
-		console.log("→ Paramètres extraits :", Array.from(params.entries()));
-  
-		token = params.get('token');
-		console.log("→ Token extrait :", token);
-	  }
-  
-	  const userId = verifyTokenAndGetUserId(token);
-	  if (!userId) {
-		console.log("Token invalide ou absent, fermeture WS");
-		connection.socket.end();
-		return;
-	  }
-  
-	  console.log("Client WS connecté pour userId =", userId);
-	  activeUsers.set(userId, connection.socket);
-  
-	  await notifyFriendsStatusChange(userId, true);
-  
-	  connection.socket.on('close', async () => {
-		console.log("Client WS déconnecté pour userId =", userId);
-		activeUsers.delete(userId);
-		await notifyFriendsStatusChange(userId, false);
-	  });
-  
-	  connection.socket.on('message', msg => {
-		console.log("WS message de", userId, ":", msg.toString());
-	  });
+	const userId = verifyTokenAndGetUserId(token);
+	if (!userId) {
+	  console.log("Token invalide ou absent, fermeture WS");
+	  connection.socket.end();
+	  return;
 	}
-  );
+  
+	console.log("Client WS connecté pour userId =", userId);
+	activeUsers.set(userId, connection.socket);
+  
+	notifyFriendsStatusChange(userId, true);
+  
+	connection.socket.on('close', () => {
+	  console.log("Client WS déconnecté pour userId =", userId);
+	  activeUsers.delete(userId);
+	  notifyFriendsStatusChange(userId, false);
+	});
+  
+	connection.socket.on('message', msg => {
+	  console.log("WS message de", userId, ":", msg.toString());
+	});
+  });
 
 function verifyTokenAndGetUserId(token) {
 	try {
