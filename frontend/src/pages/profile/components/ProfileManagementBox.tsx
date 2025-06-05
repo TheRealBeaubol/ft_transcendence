@@ -136,7 +136,7 @@ export default function ProfileManagementBox() {
 				</div>
 			</div>
 		);
-  	}
+	}
 	return (
 	
 	<div className="fixed inset-0 flex items-center justify-center z-50 gap-24">

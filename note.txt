@@ -90,10 +90,11 @@ How to work on :
 
 DB =
 	user
-		14	test1	
-		15	test2
-		16	test	pass	test@test.fr
-		17	test3	pass	test@test.ntm
+		2	lboiteux	?		?
+		14	test1		?		?
+		15	test2		?		?
+		16	test		pass	test@test.fr
+		17	test3		pass	test@test.ntm
 
 	friends
 
@@ -106,6 +107,7 @@ Nouvel table friend
 	Envoyeur de la requête
 	Recepteur
 	Status (envoyé, accepté, bloqué)
+	Depuis le (optionel (on s'en bas carrément les couilles))
 
 	Avec seulement ces 3 values on gère toutes les relations d'amis
 

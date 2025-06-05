@@ -96,7 +96,7 @@ export default function FriendList() {
 			setRequests(requests.filter(r => r.id !== requestId));
 			if (accept && data.friend) {
 				setFriends(prev => [...prev, data.friend]);
-			  }
+			}
 		} catch (err: any) {
 			setError(err.message || 'Erreur inconnue');
 		}
@@ -126,7 +126,7 @@ export default function FriendList() {
 
 	if (loading) return <p>Chargement...</p>;
 	if (error) return <p className="text-red-500">{error}</p>;
-  
+
 	return (
 		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
 			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">

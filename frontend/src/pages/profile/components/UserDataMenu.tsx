@@ -18,7 +18,7 @@ export default function UserDataMenu() {
 		fetch('/api/profile', {
 			headers: {
 				Authorization: `Bearer ${token}`
-		  	}
+			}
 		})
 		.then((res) => {
 			if (!res.ok) {
@@ -49,19 +49,19 @@ export default function UserDataMenu() {
 		},
 		body: JSON.stringify({ oldPassword, newAvatar }) // n'oublie pas oldPassword !
 	});
-  
+
 	const data = await res.json();
 		if (!res.ok) return alert(data.error || 'Erreur');
 	
 		setUser(prev => prev ? { ...prev, avatar: newAvatar } : null);
 		setNewAvatar('');
 	};
-  
+
 	const handleResetAvatar = () => {
 		const DEFAULT_AVATAR = "https://i.pinimg.com/1200x/35/99/27/359927d1398df943a13c227ae0468357.jpg";
 		setNewAvatar(DEFAULT_AVATAR);
 	};
-  
+
 	const handleDeleteSuccess = () => {
 		localStorage.removeItem('jwt_token');
 		setUser(null);
