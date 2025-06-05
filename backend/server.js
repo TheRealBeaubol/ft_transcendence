@@ -77,13 +77,15 @@ export async function notifyFriendsStatusChange(userId, isOnline) {
     );
 
     for (const friend of friends) {
-        const friendSocket = activeUsers.get(friend.friend_id);
-        if (friendSocket) {
-            friendSocket.send(JSON.stringify({
-                type: 'friend_status',
-                userId,
-                online: isOnline,
-            }));
+        const friendSockets = activeUsers.get(friend.friend_id);
+        if (friendSockets) {
+			for (const friendSocket of friendSockets) {
+				friendSocket.send(JSON.stringify({
+				type: 'friend_status',
+				userId,
+				online: isOnline,
+				}));
+			}
         }
     }
 }

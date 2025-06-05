@@ -1,72 +1,77 @@
 import jwt from "jsonwebtoken";
 import { notifyFriendsStatusChange } from "./server.js";
+import { openDb } from "./db.js";
 
 const { verify } = jwt;
 
 const activeUsers = new Map();
 
 export default async function (fastify) {
-  fastify.get('/api/friend-status', { websocket: true }, (connection, req) => {
-  try {
-    const { token } = req.query;
-    console.log("🔐 Token reçu :", token);
-    console.log("🔗 Connexion WebSocket établie");
+  fastify.get('/api/friend-status', { websocket: true }, async (connection, req) => {
+    try {
+      const { token } = req.query;
+      console.log("🔐 Token reçu :", token);
+      console.log("🔗 Connexion WebSocket établie");
 
-    if (!token) {
-      console.error("❌ Aucun token fourni");
-      connection.socket.close(4001, "No token provided");
-      return;
-    }
-
-    const payload = verify(token, process.env.JWT_SECRET);
-    console.log("✅ JWT vérifié avec succès :", payload);
-
-    const ws = connection;
-    console.log("🔗 WebSocket : ", ws);
-
-    const userId = payload.id;
-    console.log(`🆔 ID utilisateur : ${userId}`);
-
-    if (activeUsers.has(userId)) {
-      const oldWs = activeUsers.get(userId);
-      if (oldWs.readyState === oldWs.OPEN) {
-        oldWs.close(4000, 'New connection established');
+      if (!token) {
+        console.error("❌ Aucun token fourni");
+        connection.socket.close(4001, "No token provided");
+        return;
       }
-    }
 
-    activeUsers.set(userId, ws);
-    console.log(`🟢 Utilisateur ${userId} en ligne`);
+      const payload = verify(token, process.env.JWT_SECRET);
+      console.log("✅ JWT vérifié avec succès :", payload);
 
-    notifyFriendsStatusChange(userId, true)
+      const ws = connection;
+      const userId = payload.id;
+      console.log(`🆔 ID utilisateur : ${userId}`);
 
-    ws.send(JSON.stringify({ type: 'welcome', msg: 'Connected to friend status server' }));
-
-    const interval = setInterval(() => {
-      if (ws.readyState === ws.OPEN) {
-        ws.ping(); // ping manuel
+      if (!activeUsers.has(userId)) {
+        activeUsers.set(userId, new Set());
+        notifyFriendsStatusChange(userId, true);
       }
-    }, 30000);
 
-    ws.on('pong', () => {
-      console.log(`Pong reçu de l'utilisateur ${userId}`);
-    });
+      activeUsers.get(userId).add(ws);
 
-    ws.on('close', (code, reason) => {
-      console.log(`🔴 WebSocket fermé, code=${code}, reason=${reason.toString()}`);
-      activeUsers.delete(userId);
-      notifyFriendsStatusChange(userId, false);
-      clearInterval(interval);
-    });
+      console.log(`🟢 Utilisateur ${userId} en ligne`);
 
-    ws.on('error', (err) => {
-      console.error(`⚠️ WebSocket erreur utilisateur ${userId}:`, err);
-    });
+      ws.on('close', (code, reason) => {
+        console.log(`🔴 WebSocket fermé, code=${code}, reason=${reason.toString()}`);
+        const userSockets = activeUsers.get(userId);
+        userSockets?.delete(ws);
+        if (userSockets?.size === 0) {
+          activeUsers.delete(userId);
+          notifyFriendsStatusChange(userId, false);
+        }
+      });
 
-  } catch (err) {
-    console.error("Erreur dans WebSocket handler :", err);
-    connection.socket.close(1011, "Internal server error");
-  }
-});
+      ws.on('error', (err) => {
+        console.error(`⚠️ WebSocket erreur utilisateur ${userId}:`, err);
+      });
+
+      ws.send(JSON.stringify({ type: 'welcome', msg: 'Connected to friend status server' }));
+
+      // 👇 ICI tu peux utiliser `await` en toute sécurité
+      const db = await openDb();
+      const friends = await db.all(
+        `SELECT friend_id FROM friends WHERE user_id = ?`,
+        [userId]
+      );
+
+      for (const friend of friends) {
+        const isOnline = activeUsers.has(friend.friend_id);
+        ws.send(JSON.stringify({
+          type: 'friend_status',
+          userId: friend.friend_id,
+          online: isOnline,
+        }));
+      }
+
+    } catch (err) {
+      console.error("Erreur dans WebSocket handler :", err);
+      connection.socket.close(1011, "Internal server error");
+    }
+  });
 }
 
 export { activeUsers };
