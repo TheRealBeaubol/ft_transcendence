@@ -16,8 +16,39 @@ if (!JWT_SECRET) {
 	throw new Error("La variable JWT_SECRET est requise dans le .env");
 }
 
-const fastify = Fastify({ logger: true });
-fastify.register(fastifyWebsocket);
+// const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+	logger: false,
+	trustProxy: true,
+});
+
+function formatDate(date)
+{
+	const d = date.getDate().toString().padStart(2, '0');
+	const m = (date.getMonth() + 1).toString().padStart(2, '0'); // mois de 0 à 11, donc +1
+	const y = date.getFullYear();
+
+	const hh = date.getHours().toString().padStart(2, '0');
+	const mm = date.getMinutes().toString().padStart(2, '0');
+	const ss = date.getSeconds().toString().padStart(2, '0');
+
+	return `${d}/${m}/${y} ${hh}:${mm}:${ss}`;
+}
+
+
+fastify.addHook('onRequest', async (request, reply) => {
+	console.log(`------------------------------------------`);
+	console.log(`${formatDate(new Date())} : ${request.ip} -> ${request.method} ${request.url}`);
+	console.log('Headers:', request.headers);
+	// if (request.body) {
+	// 	console.log('Body:', request.body);
+	// }
+	// else {
+	// 	console.log('Body: (vide)');
+	// }
+});
+
+
 fastify.register(fastifyJwt, {
 	secret: JWT_SECRET
 });
@@ -94,9 +125,10 @@ let db;
 		required: ["username", "password", "email"],
 		properties: {
 			username: { type: "string", minLength: 3 },
-			password: { type: "string", minLength: 6 },
+			password: { type: "string", minLength: 3 }, // minLength=3 to allow "pass" as password while dev phase, "require"??? 6?
 			email: { type: "string", format: "email" }
-		}
+		},
+		additionalProperties: false
 	};
 
 	const loginSchema = {
@@ -104,7 +136,7 @@ let db;
 		required: ["identifier", "password"],
 		properties: {
 			identifier: { type: "string", minLength: 3 },
-			password: { type: "string", minLength: 6 }
+			password: { type: "string", minLength: 3 } // minLength=3 to allow "pass" as password while dev phase, "require"??? 6?
 		}
 	};
 

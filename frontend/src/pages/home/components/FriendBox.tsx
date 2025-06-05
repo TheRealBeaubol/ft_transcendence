@@ -142,7 +142,7 @@ export default function FriendList() {
 			setRequests(requests.filter(r => r.id !== requestId));
 			if (accept && data.friend) {
 				setFriends(prev => [...prev, data.friend]);
-			  }
+			}
 		} catch (err: any) {
 			setError(err.message || 'Erreur inconnue');
 		}
@@ -172,7 +172,7 @@ export default function FriendList() {
 
 	if (loading) return <p>Chargement...</p>;
 	if (error) return <p className="text-red-500">{error}</p>;
-  
+
 	return (
 		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
 			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">
@@ -213,7 +213,7 @@ export default function FriendList() {
 							{requests.length > 9 ? '9+' : requests.length}
 						</span>
 						)}
-			  		</button>
+					</button>
 				</div>
 				{showModal && friendToDelete && (
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -238,7 +238,7 @@ export default function FriendList() {
 							</div>
 						</div>
 					</div>
-            	)}
+				)}
 				{showModal && showFriendRequests && (
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-cyan-500 p-1 rounded-2xl">
@@ -272,7 +272,7 @@ export default function FriendList() {
 						</div>
 					</div>
 				)}
-		  	</div>
+			</div>
 		</div>
 	);
 }

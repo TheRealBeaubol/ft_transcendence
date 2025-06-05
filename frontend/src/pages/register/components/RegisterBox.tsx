@@ -19,8 +19,12 @@ export default function RegisterBox() {
 				body: JSON.stringify({ username, password, email }),
 			});
 			const data = await res.json();
-			if (!res.ok) {
-				alert(data.error || 'Erreur inconnue lors de l\'inscription');
+			if (!res.ok)
+			{
+				if (data.error)
+					alert("data.error = " + data.error);
+				else
+					alert('Erreur inconnue lors de l\'inscription');
 				return;
 			}
 			navigate('/login');
@@ -28,7 +32,7 @@ export default function RegisterBox() {
 			console.error(err);
 			alert('Impossible de contacter le serveur');
 		}
-	};  
+	};
 
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">

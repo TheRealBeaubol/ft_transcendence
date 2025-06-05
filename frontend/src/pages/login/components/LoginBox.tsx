@@ -12,12 +12,12 @@ export default function LoginBox() {
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
-	  		const res = await fetch('/api/login', {
+			const res = await fetch('/api/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ identifier, password }),
-	  		});
-	  		const data = await res.json();
+			});
+			const data = await res.json();
 			if (!res.ok) {
 				alert(data.error || 'Identifiants incorrects');
 				return;

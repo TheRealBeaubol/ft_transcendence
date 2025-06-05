@@ -16,28 +16,28 @@ export default function ProfileBox() {
 		if (!token) return;
 
 		fetch('/api/profile', {
-	  		headers: {
+			headers: {
 				Authorization: `Bearer ${token}`
 			}
 		})
-	  	.then((res) => {
+		.then((res) => {
 			if (!res.ok) {
 				localStorage.removeItem('jwt_token');
 				return null;
 			}
 			return res.json();
-	  	})
-	  	.then((data) => {
+		})
+		.then((data) => {
 			if (data) {
 				setUser(data as User);
 			}
-	  	})
-	  	.catch(() => {
+		})
+		.catch(() => {
 			localStorage.removeItem('jwt_token');
 		});
 	}, []);
 
-  	const handleLogout = () => {
+	const handleLogout = () => {
 		localStorage.removeItem('jwt_token');
 		setUser(null);
 		navigate('/');

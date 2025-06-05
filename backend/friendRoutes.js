@@ -71,20 +71,20 @@ export default async function friendRoutes(fastify) {
 		const db = await openDb();
 		const userId = request.user.id;
 		const { friendUsername } = request.body;
-	  
+
 		const friend = await db.get('SELECT id FROM users WHERE username = ?', friendUsername);
 		if (!friend) return reply.status(400).send({ error: "Utilisateur introuvable" });
 		if (friend.id === userId) return reply.status(400).send({ error: "Impossible de s'ajouter soi-même" });
-	  
+
 		const existing = await db.get(
-		  'SELECT * FROM friend_requests WHERE requester_id = ? AND receiver_id = ? AND status = "pending"',
-		  [userId, friend.id]
+			'SELECT * FROM friend_requests WHERE requester_id = ? AND receiver_id = ? AND status = "pending"',
+			[userId, friend.id]
 		);
 		if (existing) return reply.status(400).send({ error: "Demande déjà envoyée" });
-	  
+
 		await db.run('INSERT INTO friend_requests (requester_id, receiver_id) VALUES (?, ?)', [userId, friend.id]);
 		return reply.send({ message: "Demande d’ami envoyée" });
-	  });
+	});
 
 	fastify.get('/api/friend-requests/received', { preHandler: fastify.authenticate }, async (request, reply) => {
 		const db = await openDb();
@@ -119,15 +119,15 @@ export default async function friendRoutes(fastify) {
 		const db = await openDb();		
 		const userId = request.user.id;
 		const { requestId } = request.body;
-	  
+
 		const requestRow = await db.get('SELECT * FROM friend_requests WHERE id = ? AND receiver_id = ?', [requestId, userId]);
 		if (!requestRow) return reply.status(404).send({ error: "Demande non trouvée" });
-	  
+
 		await db.run('DELETE FROM friend_requests WHERE id = ?', requestId);
 
 		await db.run('INSERT INTO friends (user_id, friend_id) VALUES (?, ?)', [userId, requestRow.requester_id]);
 		await db.run('INSERT INTO friends (user_id, friend_id) VALUES (?, ?)', [requestRow.requester_id, userId]);
-	  
+
 		const friend = await db.get('SELECT id, username, avatar FROM users WHERE id = ?', requestRow.requester_id);
 
 		return reply.send({
@@ -140,7 +140,7 @@ export default async function friendRoutes(fastify) {
 		const db = await openDb();
 		const userId = request.user.id;
 		const { requestId } = request.body;
-	  
+
 		await db.run('DELETE FROM friend_requests WHERE id = ? AND receiver_id = ?', [requestId, userId]);
 		return reply.send({ message: "Demande refusée" });
 	});
