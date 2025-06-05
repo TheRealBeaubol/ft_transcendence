@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import { initDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
 import friendRoutes from "./friendRoutes.js";
+import createTournamentRoutes from "./createTournamentRoutes.js";
+import joinTournamentRoutes from "./joinTournamentRoutes.js";
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ let db;
 
 	await fastify.register(profileRoutes);
 	await fastify.register(friendRoutes);
+	await fastify.register(createTournamentRoutes);
+	await fastify.register(joinTournamentRoutes);
 
 	fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
 

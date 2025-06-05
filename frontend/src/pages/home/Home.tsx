@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import ProfileBox from './components/ProfileBox';
 import FriendBox from './components/FriendBox';
+import CreateTournamentBox from './components/CreateTournamentBox';
+import JoinTournamentBox from './components/JoinTournamentBox';
 import { initParticles } from '../utils/particles';
 import './index.css';
 
@@ -20,6 +22,8 @@ const Home: React.FC = () => {
 			<div className="fixed top-0 right-0 h-screen w-72 flex flex-col justify-between z-10">
 				<ProfileBox />
 				<FriendBox />
+				<CreateTournamentBox />
+				<JoinTournamentBox />
 			</div>
 		</div>
 	);

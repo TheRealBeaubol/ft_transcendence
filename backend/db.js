@@ -37,6 +37,35 @@ export async function initDb() {
 			FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 		);
+		CREATE TABLE IF NOT EXISTS tournaments (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			is_started BOOLEAN DEFAULT 0,
+			creator_id INTEGER NOT NULL,
+			created_at TEXT NOT NULL
+		);	
+		CREATE TABLE IF NOT EXISTS tournament_players (
+			tournament_id INTEGER,
+			user_id INTEGER,
+			PRIMARY KEY (tournament_id, user_id),
+			FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		);
+		CREATE TABLE IF NOT EXISTS tournament_matches (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			tournament_id INTEGER,
+			player1_id INTEGER,
+			player2_id INTEGER,
+			winner_id INTEGER,
+			round INTEGER,
+			is_finished BOOLEAN DEFAULT 0,
+			FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
+			FOREIGN KEY (player1_id) REFERENCES users(id),
+			FOREIGN KEY (player2_id) REFERENCES users(id),
+			FOREIGN KEY (winner_id) REFERENCES users(id)
+		);
+
+
 	`);
 	return db;
 }
