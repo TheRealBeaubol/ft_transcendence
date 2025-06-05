@@ -5,6 +5,7 @@ import Home from './pages/home/Home';
 import Login from './pages/login/Login';
 import Register from './pages/register/Register';
 import Profile from './pages/profile/Profile';
+import Pong from './pages/pong/Pong';
 import { UserProvider } from './UserContext';
 
 // ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -32,6 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
 				<Route path="/profile" element={<Profile />} />
+				<Route path="/pong" element={<Pong />} />
 			</Routes>
 		</BrowserRouter>
 	</UserProvider>

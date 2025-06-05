@@ -176,6 +176,8 @@ let db;
 		}
 	});
 
+	// fastify.get("/api/pong", async () => { });
+
 	try {
 		await fastify.listen({ port: Number(PORT), host: "0.0.0.0" });
 		fastify.log.info(`Serveur démarré sur le port ${PORT}`);
