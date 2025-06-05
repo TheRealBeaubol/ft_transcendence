@@ -1,12 +1,11 @@
 import Fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
+import fastifyWebsocket from "@fastify/websocket";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
 import { initDb, openDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
 import friendRoutes from "./friendRoutes.js";
-import fastifyWebsocket from "fastify-websocket";
 
 dotenv.config();
 
@@ -19,54 +18,38 @@ if (!JWT_SECRET) {
 
 const fastify = Fastify({ logger: true });
 fastify.register(fastifyWebsocket);
+fastify.register(fastifyJwt, {
+	secret: JWT_SECRET
+});
 
 const activeUsers = new Map();
-
 fastify.get('/api/friend-status', { websocket: true }, (connection, req) => {
-	console.log("→ Nouvelle tentative de connexion WebSocket (avant JWT)");
-  
-	const headers = req?.headers;
-	console.log("→ Headers de la requête :", headers);
-  
-	const token = headers?.['sec-websocket-protocol'];
-	console.log("→ Token extrait depuis subprotocol :", token);
-  
-	const userId = verifyTokenAndGetUserId(token);
-	if (!userId) {
-	  console.log("Token invalide ou absent, fermeture WS");
-	  connection.socket.end();
-	  return;
-	}
-  
-	console.log("Client WS connecté pour userId =", userId);
-	activeUsers.set(userId, connection.socket);
-  
-	notifyFriendsStatusChange(userId, true);
-  
-	connection.socket.on('close', () => {
-	  console.log("Client WS déconnecté pour userId =", userId);
-	  activeUsers.delete(userId);
-	  notifyFriendsStatusChange(userId, false);
-	});
-  
-	connection.socket.on('message', msg => {
-	  console.log("WS message de", userId, ":", msg.toString());
-	});
-  });
-
-function verifyTokenAndGetUserId(token) {
 	try {
-		if (!token) {
-			console.log("Token absent, impossible de vérifier l'utilisateur");
-			return null;
-		}
-		const decoded = jwt.verify(token, JWT_SECRET);
-		return decoded.id;
-	} catch (e) {
-		console.error("Erreur de vérification du token :", e.message);
-		return null;
+	  const url = new URL(req.raw.url, `http://${req.headers.host}`);
+	  const token = url.searchParams.get('token');
+  
+	  if (!token) {
+		console.log('❌ Aucun token fourni');
+		return connection.socket.close();
+	  }
+  
+	  const decoded = fastify.jwt.verify(token);
+	  console.log("✅ JWT vérifié :", decoded);
+  
+	  connection.socket.send(`Bienvenue ${decoded.username}`);
+  
+	  connection.socket.on('message', (message) => {
+		console.log(`💬 Message de ${decoded.username} :`, message.toString());
+	  });
+  
+	} catch (err) {
+	  console.error("🚫 JWT invalide :", err.message);
+	  connection.socket.close();
 	}
-}
+  });
+  
+  
+
 
 async function notifyFriendsStatusChange(userId, isOnline) {
     const db = await openDb();
@@ -86,10 +69,6 @@ async function notifyFriendsStatusChange(userId, isOnline) {
         }
     }
 }
-
-fastify.register(fastifyJwt, {
-	secret: JWT_SECRET
-});
 
 fastify.decorate("authenticate", async (request, reply) => {
 	try {

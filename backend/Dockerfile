@@ -1,17 +1,14 @@
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN mkdir -p /app/data
 
-
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
-RUN apk update && apk add --no-cache sqlite
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app .
+RUN apt update && apt install -y sqlite3
 EXPOSE 3000
 CMD ["npm", "start"]
