@@ -1,0 +1,20 @@
+--------Tournament-----------
+
+->table tournament
+		->link table for user and tournament
+
+TournamentBox -> click -> pop up like delete box -> 
+		-> button  if u want to create a tournament
+			->ask for name of the tournament u want to create (required)
+				->create a tournament -> the creator automaticaly join the tournament
+		-> button if u want to join a tournament
+			-->can ask for a join code
+			-->can show a list of tournament with details if u click on it and possibility of join
+
+Once you've join a tournament -> question ? can u join mutiple tournament
+												-> if not then just replace the box for create/join tournament by a box to see the tournament we actually are in
+																					->can unjoin tournament only if the tournament didn't start yet
+																					->can see the tournament set and tree -> the result of past and actual match
+																					->can see if u wanting for an oppenent -> if not the rest of time before ur match
+																					(-> option to see details of match onclick, profil of player details on click ect)
+																					(-> if necessary a table score with point of each player)

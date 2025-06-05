@@ -25,7 +25,17 @@ export default async function joinTournamentRoute(fastify) {
 			if (existing) {
 				return reply.status(400).send({ error: 'Vous êtes déjà inscrit à ce tournoi' });
 			}
+            // Vérifie si l'utilisateur est déjà dans un tournoi (n'importe lequel)
+			const alreadyInTournament = await db.get(
+				'SELECT 1 FROM tournament_players WHERE user_id = ?',
+				[userId]
+			);
 
+			if (alreadyInTournament) {
+				return reply.status(400).send({ error: 'Vous êtes déjà inscrit à un tournoi' });
+			}
+            
+            // Inscription au tournoi
 			await db.run(
 				'INSERT INTO tournament_players (tournament_id, user_id) VALUES (?, ?)',
 				[tournament.id, userId]
