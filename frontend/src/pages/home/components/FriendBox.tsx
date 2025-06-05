@@ -84,18 +84,13 @@ useEffect(() => {
       };
 
       ws.onmessage = (event) => {
+		  
         console.log("Message reçu :", event.data);
         try {
           const data = JSON.parse(event.data);
 
-          // Répondre au ping du serveur
-          if (data.type === 'ping') {
-            ws.send(JSON.stringify({ type: 'pong' }));
-            return;
-          }
-
           // Exemple : mise à jour du status d'un ami (à adapter selon format serveur)
-          if (data.type === 'friendStatusUpdate' && data.userId !== undefined && typeof data.online === 'boolean') {
+          if (data.type === 'friend_status' && data.userId !== undefined && typeof data.online === 'boolean') {
             setFriendStatus(prev => ({
               ...prev,
               [data.userId]: data.online,
@@ -112,7 +107,6 @@ useEffect(() => {
       ws.onerror = (err) => {
         console.error("🚨 WebSocket erreur :", err);
       };
-
       ws.onclose = (event) => {
         console.warn(`❌ WebSocket déconnecté, code=${event.code}, reason=${event.reason}`);
 
