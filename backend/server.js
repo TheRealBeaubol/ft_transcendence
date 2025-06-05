@@ -39,6 +39,12 @@ fastify.addHook('onRequest', async (request, reply) => {
 	console.log(`------------------------------------------`);
 	console.log(`${formatDate(new Date())} : ${request.ip} -> ${request.method} ${request.url}`);
 	console.log('Headers:', request.headers);
+	// if (request.body) {
+	// 	console.log('Body:', request.body);
+	// }
+	// else {
+	// 	console.log('Body: (vide)');
+	// }
 });
 
 
@@ -70,9 +76,10 @@ let db;
 		required: ["username", "password", "email"],
 		properties: {
 			username: { type: "string", minLength: 3 },
-			password: { type: "string", minLength: 6 },
+			password: { type: "string", minLength: 3 }, // minLength=3 to allow "pass" as password while dev phase, "require"??? 6?
 			email: { type: "string", format: "email" }
-		}
+		},
+		additionalProperties: false
 	};
 
 	const loginSchema = {
@@ -80,7 +87,7 @@ let db;
 		required: ["identifier", "password"],
 		properties: {
 			identifier: { type: "string", minLength: 3 },
-			password: { type: "string", minLength: 6 }
+			password: { type: "string", minLength: 3 } // minLength=3 to allow "pass" as password while dev phase, "require"??? 6?
 		}
 	};
 

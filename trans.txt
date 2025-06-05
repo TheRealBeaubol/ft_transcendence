@@ -1,3 +1,8 @@
+DB =
+	user
+		1	test	pass	test@test.fr
+		14	test1	
+		15	test2
 
 Launchable with a Docker
 
