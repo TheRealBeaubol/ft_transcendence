@@ -15,7 +15,8 @@ if (!JWT_SECRET) {
 	throw new Error("La variable JWT_SECRET est requise dans le .env");
 }
 
-const fastify = Fastify({ logger: true });
+// const fastify = Fastify({ logger: true });
+const fastify = Fastify({ logger: false });
 
 fastify.register(fastifyJwt, {
 	secret: JWT_SECRET
