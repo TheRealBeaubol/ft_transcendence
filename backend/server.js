@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { initDb, openDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
 import friendRoutes from "./friendRoutes.js";
+import socketRoutes from './socketRoutes.js';
 
 dotenv.config();
 
@@ -53,34 +54,8 @@ fastify.register(fastifyJwt, {
 	secret: JWT_SECRET
 });
 
-const activeUsers = new Map();
-fastify.get('/api/friend-status', { websocket: true }, (connection, req) => {
-	try {
-	  const url = new URL(req.raw.url, `http://${req.headers.host}`);
-	  const token = url.searchParams.get('token');
-  
-	  if (!token) {
-		console.log('❌ Aucun token fourni');
-		return connection.socket.close();
-	  }
-  
-	  const decoded = fastify.jwt.verify(token);
-	  console.log("✅ JWT vérifié :", decoded);
-  
-	  connection.socket.send(`Bienvenue ${decoded.username}`);
-  
-	  connection.socket.on('message', (message) => {
-		console.log(`💬 Message de ${decoded.username} :`, message.toString());
-	  });
-  
-	} catch (err) {
-	  console.error("🚫 JWT invalide :", err.message);
-	  connection.socket.close();
-	}
-  });
-  
-  
-
+await fastify.register(fastifyWebsocket);
+await fastify.register(socketRoutes);
 
 async function notifyFriendsStatusChange(userId, isOnline) {
     const db = await openDb();

@@ -94,8 +94,6 @@ export default function FriendList() {
 		  ws.close();
 		};
 	  }, []);
-	  
-	  
 
 
 	const handleAddFriend = async () => {
