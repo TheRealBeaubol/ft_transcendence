@@ -1,0 +1,136 @@
+Launchable with a Docker
+
+SPA (Single Page Application)
+
+Mozilla Firefox compatible
+
+BackEnd 
+	-> PHP
+	-> FrameWork Module
+	If database use
+		-> Database Module
+
+FrontEnd
+	-> TypeScript
+	-> FrontEnd Module
+	-> Graphics Module
+
+================================
+
+GAME
+
+	Live pong against other player
+		-> Both player on the same keyboard
+		-> Remote player Module
+
+	Tournament -> Display who is playing against who and the order of the play
+
+	Registration System
+		-> Each player input alias at the start of a tourmament -> Alias reset at the start of a new Tournament
+		-> Standard User Management Module
+
+	MatchMaking System -> Organize the matchmaking and announce the next match
+
+================================
+
+SECURITY
+
+	Password in database -> hashed
+
+	Protected against SQL Injection and XSS attacks
+
+	If backend or other feature -> HTTPS connection
+
+	Validation mechanism for forms or any user input
+
+	If API -> Protected routes
+
+================================
+
+MODULES (mandatory = 7 Major Module (2 Minor module = 1 Major module))
+
+	Web
+		-> Minor Module : DataBase
+
+	User Management
+		-> Major Module : Standard User Management
+		-> Major Module : Google Sign-In
+
+	Gameplay And User Experience
+		-> Major Module : Remote Players
+		-> Major Module : Multiple Players
+		-> Major Module : Add Another Game
+		-> Major Module : Live Chat
+		-> Minor Module : Game customization
+
+	AI-Algo
+		-> Major Module : Introduce an AI Opponent
+		-> Minor Module : User and Game stats Dashboard
+
+	Cybersecurity
+
+	Devops
+
+	Graphics
+
+	Accessibility
+		-> Minor Module : Multiple Language Support
+
+TOTAL : 130/125		8 Major Module & 4 Minor Module
+
+================================
+
+How to work on :
+	to launch the projet : make dev
+	to acces the db:
+		docker exec -it backend-dev sh
+		sqlite3 data/mydb.sqlite
+
+================================
+
+DB =
+	user
+		14	test1	
+		15	test2
+		16	test	pass	test@test.fr
+		17	test3	pass	test@test.ntm
+
+	friends
+
+		test	&	test3
+		test1	&	test2
+
+================================
+
+Nouvel table friend
+	Envoyeur de la requête
+	Recepteur
+	Status (envoyé, accepté, bloqué)
+
+	Avec seulement ces 3 values on gère toutes les relations d'amis
+
+		------
+
+		1
+			test invite test1
+			db = test test1 pending
+
+		------
+		
+		2
+			test1 accept
+			db = test test1 accepted
+		
+		------
+		
+		3.1
+			test block test1
+			db = test test1 blocked
+		
+		---
+		
+		3.2
+			test1 block test
+			db = test1 test blocked
+		
+		------
