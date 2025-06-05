@@ -66,7 +66,7 @@ export default function FriendList() {
 		if (!token) return;
 	  
 		console.log("🔗 Connexion WebSocket...");
-		const ws = new WebSocket("ws://localhost:3000/api/friend-status", [token]);
+		const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
 		console.log("🔗 WebSocket créé :", ws);
 		ws.onopen = () => {
 		  console.log("✅ WebSocket connecté");
