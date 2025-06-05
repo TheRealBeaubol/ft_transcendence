@@ -1,91 +1,109 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 export default function PongGame() {
-  const canvasRef = useRef(null);
-  const [keys, setKeys] = useState({});
+	const canvasRef = useRef(null);
+	const [keys, setKeys] = useState({});
 
-  const paddleHeight = 80;
-  const paddleWidth = 10;
-  const canvasWidth = 600;
-  const canvasHeight = 400;
+	const paddleHeight = 80;
+	const paddleWidth = 10;
+	const canvasWidth = 600;
+	const canvasHeight = 400;
 
-  const leftPaddle = useRef({ x: 10, y: canvasHeight / 2 - paddleHeight / 2 });
-  const rightPaddle = useRef({ x: canvasWidth - 20, y: canvasHeight / 2 - paddleHeight / 2 });
-  const ball = useRef({ x: canvasWidth / 2, y: canvasHeight / 2, vx: 3, vy: 2 });
+	const leftPaddle = useRef({ x: 10, y: canvasHeight / 2 - paddleHeight / 2 });
+	const rightPaddle = useRef({ x: canvasWidth - 20, y: canvasHeight / 2 - paddleHeight / 2 });
+	const ball = useRef({ x: canvasWidth / 2, y: canvasHeight / 2, vx: 3, vy: 2 });
 
-  useEffect(() => {
-    const handleKeyDown = (e) => setKeys((k) => ({ ...k, [e.key]: true }));
-    const handleKeyUp = (e) => setKeys((k) => ({ ...k, [e.key]: false }));
+	useEffect(() => {
+		const keysPressed: Record<string, boolean> = {};
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+		const handleKeyDown = (e: KeyboardEvent) => { keysPressed[e.key] = true; };
+		const handleKeyUp = (e: KeyboardEvent) => { keysPressed[e.key] = false; };
 
-    const context = canvasRef.current.getContext('2d');
+		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keyup', handleKeyUp);
 
-    const gameLoop = () => {
-      // Move paddles
-      if (keys['w']) leftPaddle.current.y -= 5;
-      if (keys['s']) leftPaddle.current.y += 5;
-      if (keys['ArrowUp']) rightPaddle.current.y -= 5;
-      if (keys['ArrowDown']) rightPaddle.current.y += 5;
+		const context = canvasRef.current!.getContext('2d')!;
+		let lastTime = performance.now();
 
-      // Clamp paddle position
-      leftPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, leftPaddle.current.y));
-      rightPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, rightPaddle.current.y));
+		const speed = 200; // pixels per second
+		const paddleSpeed = 300;
 
-      // Move ball
-      ball.current.x += ball.current.vx;
-      ball.current.y += ball.current.vy;
+		const loop = (time: number) => {
 
-      // Bounce top/bottom
-      if (ball.current.y <= 0 || ball.current.y >= canvasHeight) {
-        ball.current.vy *= -1;
-      }
+			const delta = (time - lastTime) / 1000;
+			lastTime = time;
 
-      // Bounce paddles
-      if (
-        (ball.current.x <= leftPaddle.current.x + paddleWidth &&
-          ball.current.y >= leftPaddle.current.y &&
-          ball.current.y <= leftPaddle.current.y + paddleHeight) ||
-        (ball.current.x >= rightPaddle.current.x - paddleWidth &&
-          ball.current.y >= rightPaddle.current.y &&
-          ball.current.y <= rightPaddle.current.y + paddleHeight)
-      ) {
-        ball.current.vx *= -1;
-      }
+			// Paddle movement
+			if (keysPressed['w']) leftPaddle.current.y -= paddleSpeed * delta;
+			if (keysPressed['s']) leftPaddle.current.y += paddleSpeed * delta;
+			if (keysPressed['ArrowUp']) rightPaddle.current.y -= paddleSpeed * delta;
+			if (keysPressed['ArrowDown']) rightPaddle.current.y += paddleSpeed * delta;
 
-      // Reset if out of bounds
-      if (ball.current.x < 0 || ball.current.x > canvasWidth) {
-        ball.current = { x: canvasWidth / 2, y: canvasHeight / 2, vx: 3 * (Math.random() > 0.5 ? 1 : -1), vy: 2 };
-      }
+			// Clamp paddle position
+			leftPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, leftPaddle.current.y));
+			rightPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, rightPaddle.current.y));
 
-      // Draw everything
-      context.clearRect(0, 0, canvasWidth, canvasHeight);
+			// Ball movement
+			ball.current.x += ball.current.vx * delta;
+			ball.current.y += ball.current.vy * delta;
 
-      // Ball
-      context.fillRect(ball.current.x, ball.current.y, 10, 10);
+			// Bounce top/bottom
+			if (ball.current.y <= 0 || ball.current.y >= canvasHeight - 10)
+				ball.current.vy *= -1;
 
-      // Paddles
-      context.fillRect(leftPaddle.current.x, leftPaddle.current.y, paddleWidth, paddleHeight);
-      context.fillRect(rightPaddle.current.x, rightPaddle.current.y, paddleWidth, paddleHeight);
+			// Paddle collision
+			if ( ball.current.x <= leftPaddle.current.x + paddleWidth && ball.current.y >= leftPaddle.current.y && ball.current.y <= leftPaddle.current.y + paddleHeight )
+			{
+				ball.current.vx *= -1;
+				ball.current.x = leftPaddle.current.x + paddleWidth;
+			}
 
-      requestAnimationFrame(gameLoop);
-    };
+			if ( ball.current.x + 10 >= rightPaddle.current.x && ball.current.y >= rightPaddle.current.y && ball.current.y <= rightPaddle.current.y + paddleHeight)
+			{
+				ball.current.vx *= -1;
+				ball.current.x = rightPaddle.current.x - 10;
+			}
 
-    requestAnimationFrame(gameLoop);
+			// Reset if out
+			if (ball.current.x < 0 || ball.current.x > canvasWidth)
+			{
+				ball.current = {
+					x: canvasWidth / 2,
+					y: canvasHeight / 2,
+					vx: (Math.random() > 0.5 ? 1 : -1) * speed,
+					vy: (Math.random() > 0.5 ? 1 : -1) * speed * 0.5,
+				};
+			}
 
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [keys]);
+			// Draw
+			context.clearRect(0, 0, canvasWidth, canvasHeight);
+			context.fillRect(ball.current.x, ball.current.y, 10, 10);
+			context.fillRect(leftPaddle.current.x, leftPaddle.current.y, paddleWidth, paddleHeight);
+			context.fillRect(rightPaddle.current.x, rightPaddle.current.y, paddleWidth, paddleHeight);
 
-  return (
-	<div>
-		<h1>test</h1>
-		<div className="flex justify-center mt-4">
-			<canvas ref={canvasRef} width={600} height={400} style={{ border: '1px solid black' }} />
+			requestAnimationFrame(loop);
+		};
+
+		// Initial ball velocity
+		ball.current.vx = speed * (Math.random() > 0.5 ? 1 : -1);
+		ball.current.vy = speed * 0.5 * (Math.random() > 0.5 ? 1 : -1);
+
+		requestAnimationFrame(loop);
+
+		return () => { window.removeEventListener('keydown', handleKeyDown); window.removeEventListener('keyup', handleKeyUp); };
+	}, []);
+
+	return (
+		<div>
+			<h1>test</h1>
+			<div className="flex justify-center mt-4">
+				<canvas
+					ref={canvasRef}
+					width={600}
+					height={400}
+					style={{ border: '1px solid black' }}
+				/>
+			</div>
 		</div>
-	</div>
-  );
+	);
 }
