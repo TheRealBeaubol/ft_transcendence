@@ -7,19 +7,32 @@ import Register from './pages/register/Register';
 import Profile from './pages/profile/Profile';
 import { UserProvider } from './UserContext';
 
+// ReactDOM.createRoot(document.getElementById('root')!).render(
+
+// 	<React.StrictMode>
+// 		<UserProvider>
+// 			<BrowserRouter>
+// 				<Routes>
+// 					<Route path="/" element={<Home />} />
+// 					<Route path="/login" element={<Login />} />
+// 					<Route path="/register" element={<Register />} />
+// 					<Route path="/profile" element={<Profile />} />
+// 				</Routes>
+// 			</BrowserRouter>
+// 		</UserProvider>
+// 	</React.StrictMode>
+
+// );
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-
-	<React.StrictMode>
-		<UserProvider>
-			<BrowserRouter>
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/register" element={<Register />} />
-					<Route path="/profile" element={<Profile />} />
-				</Routes>
-			</BrowserRouter>
-		</UserProvider>
-	</React.StrictMode>
-
+	<UserProvider>
+		<BrowserRouter>
+			<Routes>
+				<Route path="/" element={<Home />} />
+				<Route path="/login" element={<Login />} />
+				<Route path="/register" element={<Register />} />
+				<Route path="/profile" element={<Profile />} />
+			</Routes>
+		</BrowserRouter>
+	</UserProvider>
 );

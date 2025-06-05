@@ -16,7 +16,31 @@ if (!JWT_SECRET) {
 }
 
 // const fastify = Fastify({ logger: true });
-const fastify = Fastify({ logger: false });
+const fastify = Fastify({
+	logger: false,
+	trustProxy: true,
+});
+
+function formatDate(date)
+{
+	const d = date.getDate().toString().padStart(2, '0');
+	const m = (date.getMonth() + 1).toString().padStart(2, '0'); // mois de 0 à 11, donc +1
+	const y = date.getFullYear();
+
+	const hh = date.getHours().toString().padStart(2, '0');
+	const mm = date.getMinutes().toString().padStart(2, '0');
+	const ss = date.getSeconds().toString().padStart(2, '0');
+
+	return `${d}/${m}/${y} ${hh}:${mm}:${ss}`;
+}
+
+
+fastify.addHook('onRequest', async (request, reply) => {
+	console.log(`------------------------------------------`);
+	console.log(`${formatDate(new Date())} : ${request.ip} -> ${request.method} ${request.url}`);
+	console.log('Headers:', request.headers);
+});
+
 
 fastify.register(fastifyJwt, {
 	secret: JWT_SECRET

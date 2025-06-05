@@ -166,7 +166,7 @@ export default function FriendList() {
 							{requests.length > 9 ? '9+' : requests.length}
 						</span>
 						)}
-			  		</button>
+					</button>
 				</div>
 				{showModal && friendToDelete && (
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -191,7 +191,7 @@ export default function FriendList() {
 							</div>
 						</div>
 					</div>
-            	)}
+				)}
 				{showModal && showFriendRequests && (
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-cyan-500 p-1 rounded-2xl">
@@ -225,7 +225,7 @@ export default function FriendList() {
 						</div>
 					</div>
 				)}
-		  	</div>
+			</div>
 		</div>
 	);
 }
