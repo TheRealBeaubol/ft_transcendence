@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 type Friend = {
 	id: number;
@@ -60,40 +60,89 @@ export default function FriendList() {
 		fetchData();
 	}, []);
 
-	useEffect(() => {
-		const token = localStorage.getItem('jwt_token');
-		console.log ("🔑 Token récupéré :", token);
-		if (!token) return;
-	  
-		console.log("🔗 Connexion WebSocket...");
-		const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
-		console.log("🔗 WebSocket créé :", ws);
-		ws.onopen = () => {
-		  console.log("✅ WebSocket connecté");
-		};
-		ws.onerror = (err) => {
-		  console.error("🚨 WebSocket erreur :", err);
-		};
-		ws.onmessage = (event) => {
-		  try {
-			const data = JSON.parse(event.data);
-			if (data.type === 'friend_status') {
-			  setFriendStatus(prev => ({
-				...prev,
-				[data.userId]: data.isOnline,
-			  }));
-			}
-		  } catch (e) {
-			console.warn("⛔ Donnée WS inattendue :", event.data);
-		  }
-		};
-		ws.onclose = () => {
-		  console.warn('❌ WebSocket déconnecté');
-		};
-		return () => {
-		  ws.close();
-		};
-	  }, []);
+
+useEffect(() => {
+    const wsRef = { current: null as WebSocket | null };
+    const reconnectTimeoutRef = { current: null as number | null };
+    let reconnectAttempts = 0;
+
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      console.warn("⚠️ Pas de token JWT, websocket non démarré");
+      return;
+    }
+
+    function connect() {
+      console.log("🧾 Tentative de connexion WebSocket avec token :", token);
+
+      const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        console.log("✅ WebSocket connecté");
+        reconnectAttempts = 0; // reset compteur de reconnexion
+      };
+
+      ws.onmessage = (event) => {
+        console.log("Message reçu :", event.data);
+        try {
+          const data = JSON.parse(event.data);
+
+          // Répondre au ping du serveur
+          if (data.type === 'ping') {
+            ws.send(JSON.stringify({ type: 'pong' }));
+            return;
+          }
+
+          // Exemple : mise à jour du status d'un ami (à adapter selon format serveur)
+          if (data.type === 'friendStatusUpdate' && data.userId !== undefined && typeof data.online === 'boolean') {
+            setFriendStatus(prev => ({
+              ...prev,
+              [data.userId]: data.online,
+            }));
+          }
+          // Tu peux gérer d'autres types de messages ici
+
+        } catch (e) {
+          // ignore JSON parse errors
+          console.warn("Erreur JSON dans message WS :", e);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("🚨 WebSocket erreur :", err);
+      };
+
+      ws.onclose = (event) => {
+        console.warn(`❌ WebSocket déconnecté, code=${event.code}, reason=${event.reason}`);
+
+        // Tentative de reconnexion exponentielle max 30s, max 10 tentatives
+        if (reconnectAttempts < 10) {
+          const delay = 3000
+          console.log(`⏳ Reconnexion dans ${delay / 1000}s...`);
+          reconnectTimeoutRef.current = window.setTimeout(() => {
+            reconnectAttempts++;
+            connect();
+          }, delay);
+        } else {
+          console.error("❌ Trop de tentatives de reconnexion, arrêt.");
+        }
+      };
+    }
+
+    connect();
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        console.log("🔒 Fermeture propre du WebSocket côté client");
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
 
 
 	const handleAddFriend = async () => {

@@ -1,4 +1,3 @@
-// socketRoutes.js
 import jwt from "jsonwebtoken";
 const { verify } = jwt;
 
@@ -11,7 +10,7 @@ export default async function (fastify) {
 
     if (!token) {
       console.error("❌ Aucun token fourni");
-      connection.socket.close();
+      connection.socket.close(4001, "No token provided");
       return;
     }
 
@@ -21,25 +20,44 @@ export default async function (fastify) {
       console.log("✅ JWT vérifié avec succès :", payload);
     } catch (err) {
       console.error("❌ JWT invalide :", err.message);
-      connection.socket.close();
+      connection.socket.close(4002, "Invalid token");
       return;
     }
 
-    const userId = payload.id;
     const ws = connection.socket;
+    const userId = payload.id;
 
+    // Si déjà connecté, fermer l'ancienne connexion
+    if (activeUsers.has(userId)) {
+      const oldWs = activeUsers.get(userId);
+      if (oldWs.readyState === oldWs.OPEN) {
+        oldWs.close(4000, 'New connection established');
+      }
+    }
     activeUsers.set(userId, ws);
-    console.log(`✅ Connexion WebSocket réussie pour l'utilisateur ${userId}`);
+    console.log(`🟢 Utilisateur ${userId} en ligne`);
 
-    ws.send(`🟢 Connecté en tant qu'utilisateur ${userId}`);
+    ws.send(JSON.stringify({ type: 'welcome', msg: 'Connected to friend status server' }));
 
-    ws.on('close', () => {
+    const interval = setInterval(() => {
+      if (ws.readyState === ws.OPEN) {
+        ws.ping();
+      }
+    }, 30000);
+
+    ws.on('close', (code, reason) => {
+      const reasonStr = reason ? reason.toString() : '';
+      console.log(`🔴 WebSocket fermé, code=${code}, reason=${reasonStr}`);
       activeUsers.delete(userId);
-      console.log(`👋 Utilisateur ${userId} déconnecté`);
+      clearInterval(interval);
     });
 
-    ws.on('message', (msg) => {
-      console.log(`📩 Message reçu de ${userId} :`, msg.toString());
+    ws.on('error', (err) => {
+      console.error(`⚠️ WebSocket erreur utilisateur ${userId}:`, err);
+    });
+
+    ws.on('pong', () => {
+      console.log(`Pong reçu de l'utilisateur ${userId}`);
     });
   });
 }
