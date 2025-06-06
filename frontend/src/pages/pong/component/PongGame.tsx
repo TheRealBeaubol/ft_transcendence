@@ -47,6 +47,18 @@ export default function PongGame() {
 			};
 		};
 
+		// Fonction utilitaire
+		const calculateBounceAngle = (
+		paddleY: number,
+		ballY: number,
+		paddleHeight: number,
+		maxBounceAngle: number = Math.PI / 4 // 45°
+		) => {
+		const relativeIntersectY = (paddleY + paddleHeight / 2) - (ballY + 5); // balle centrée
+		const normalizedRelativeIntersectionY = relativeIntersectY / (paddleHeight / 2);
+		return normalizedRelativeIntersectionY * maxBounceAngle;
+		};
+
 		const loop = (time: number) => {
 
 			const delta = (time - lastTime) / 1000;
@@ -73,17 +85,27 @@ export default function PongGame() {
 			// Left paddle collision
 			if ( ball.current.x <= leftPaddle.current.x + paddleWidth && ball.current.y >= leftPaddle.current.y && ball.current.y <= leftPaddle.current.y + paddleHeight )
 			{
-				ball.current.vx *= -1;
+				const angle = calculateBounceAngle(leftPaddle.current.y, ball.current.y, paddleHeight);
+				const speed = baseSpeed * ballSpeedMultiplier.current;
+
+				ball.current.vx = speed * Math.cos(angle);
+				ball.current.vy = -speed * Math.sin(angle);
 				ball.current.x = leftPaddle.current.x + paddleWidth;
-				ballSpeedMultiplier.current += 0.1; // 🚀 accélération
+
+				ballSpeedMultiplier.current += 0.3
 			}
 
 			// Right paddle collision
 			if ( ball.current.x + 10 >= rightPaddle.current.x && ball.current.y >= rightPaddle.current.y && ball.current.y <= rightPaddle.current.y + paddleHeight)
 			{
-				ball.current.vx *= -1;
+				const angle = calculateBounceAngle(rightPaddle.current.y, ball.current.y, paddleHeight);
+				const speed = baseSpeed * ballSpeedMultiplier.current;
+
+				ball.current.vx = -speed * Math.cos(angle);
+				ball.current.vy = -speed * Math.sin(angle);
 				ball.current.x = rightPaddle.current.x - 10;
-				ballSpeedMultiplier.current += 0.1; // 🚀 accélération
+
+				ballSpeedMultiplier.current += 0.3;
 			}
 
 			// Score if out
