@@ -51,7 +51,7 @@ export default function PongGame() {
 		const paddleSpeed = 300;
 
 		const createExplosion = (x, y, color) => {
-			const count = 20;
+			const count = 300;
 			for (let i = 0; i < count; i++) {
 				const angle = Math.random() * 2 * Math.PI;
 				const speed = Math.random() * 200 + 100;
@@ -168,11 +168,30 @@ export default function PongGame() {
 
 			// Mise à jour particules
 			particles.current = particles.current.filter(p => p.opacity > 0);
+			// particles.current.forEach(p => {
+			// 	p.x += p.vx * delta;
+			// 	p.y += p.vy * delta;
+			// 	p.opacity -= delta * 0.5; // disparition en 1 sec environ
+			// });
 			particles.current.forEach(p => {
 				p.x += p.vx * delta;
 				p.y += p.vy * delta;
-				p.opacity -= delta * 1; // disparition en 1 sec environ
+
+				// Rebond sur les bords horizontaux
+				if (p.x <= 0 || p.x >= canvasWidth) {
+					p.vx *= -1;
+					p.x = Math.max(0, Math.min(canvasWidth, p.x)); // évite les débordements
+				}
+
+				// Rebond sur les bords verticaux
+				if (p.y <= 0 || p.y >= canvasHeight) {
+					p.vy *= -1;
+					p.y = Math.max(0, Math.min(canvasHeight, p.y)); // évite les débordements
+				}
+
+				p.opacity -= delta * 1*0.5;
 			});
+
 
 			// Draw
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -230,9 +249,9 @@ export default function PongGame() {
 			<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-3xl">
 				<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-6 text-white font-mono flex flex-col gap-6 items-center">
 					
-					<div className="flex justify-between w-full text-lg text-cyan-200">
-						<span>Player 1: {leftScore}</span>
-						<span>Player 2: {rightScore}</span>
+					<div className="flex justify-between w-full text-lg">
+						<span style={{ textShadow: '0 0 16px cyan, 0 0 16px cyan', color: 'cyan' }}>Player 1: {leftScore}</span>
+						<span  style={{ textShadow: '0 0 16px magenta, 0 0 16px magenta', color: 'magenta' }}>Player 2: {rightScore}</span>
 					</div>
 
 					<canvas
