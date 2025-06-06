@@ -1,26 +1,38 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 export default function PongGame() {
+
+	const colorMap = {
+		cyan: '0, 255, 255',
+		magenta: '255, 0, 255',
+		white: '255, 255, 255',
+	};
+
+	function hexToRgb(colorName) {
+		return colorMap[colorName] || '255, 255, 255';
+	}
+
 	const canvasRef = useRef(null);
-	const [leftScore, setLeftScore] = useState(0);
-	const [rightScore, setRightScore] = useState(0);
-
-	const ballColor = useRef('white');
-	const ballShadowBlur = useRef(10); // flou initial
-
-	// const [keys, setKeys] = useState({});
-
-	const paddleHeight = 80;
-	const paddleWidth = 10;
 	const canvasWidth = 600;
 	const canvasHeight = 400;
 
-	const leftPaddle = useRef({ x: 10, y: canvasHeight / 2 - paddleHeight / 2 });
-	const rightPaddle = useRef({ x: canvasWidth - 20, y: canvasHeight / 2 - paddleHeight / 2 });
+	const particles = useRef([]); // tableau des particule
+
+	const [leftScore, setLeftScore] = useState(0);
+	const [rightScore, setRightScore] = useState(0);
+	
 	const ball = useRef({ x: canvasWidth / 2, y: canvasHeight / 2, vx: 3, vy: 2 });
 	const ballSpeedMultiplier = useRef(1); // 🔁 acceleration
+	const ballColor = useRef('white');
+	const ballShadowBlur = useRef(10); // flou initial
+
+	const paddleHeight = 80;
+	const paddleWidth = 10;
+	const leftPaddle = useRef({ x: 10, y: canvasHeight / 2 - paddleHeight / 2 });
+	const rightPaddle = useRef({ x: canvasWidth - 20, y: canvasHeight / 2 - paddleHeight / 2 });
 
 	useEffect(() => {
+
 		const keysPressed: Record<string, boolean> = {};
 
 		const handleKeyDown = (e: KeyboardEvent) => { keysPressed[e.key] = true; };
@@ -30,16 +42,38 @@ export default function PongGame() {
 		window.addEventListener('keyup', handleKeyUp);
 
 		const context = canvasRef.current!.getContext('2d')!;
-		if (!context) return;
+		if (!context)
+			return;
+
 		let lastTime = performance.now();
 
 		const baseSpeed = 200;
-		// const speed = 200; // pixels per second
 		const paddleSpeed = 300;
 
+		const createExplosion = (x, y, color) => {
+			const count = 20;
+			for (let i = 0; i < count; i++) {
+				const angle = Math.random() * 2 * Math.PI;
+				const speed = Math.random() * 200 + 100;
+				particles.current.push({
+				x,
+				y,
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				opacity: 1,
+				color,
+				size: Math.random() * 4 + 2,
+				});
+			}
+		};
+
 		const resetBall = (scoringPlayer: 'left' | 'right') => {
-			if (scoringPlayer === 'left') setLeftScore((s) => s + 1);
-			else setRightScore((s) => s + 1);
+			if (scoringPlayer === 'left')
+				setLeftScore((s) => s + 1);
+			else
+				setRightScore((s) => s + 1);
+
+			createExplosion(ball.current.x, ball.current.y, ballColor.current);
 
 			ballSpeedMultiplier.current = 1
 			ballShadowBlur.current = 10;
@@ -55,16 +89,15 @@ export default function PongGame() {
 
 		};
 
-		// Fonction utilitaire
 		const calculateBounceAngle = (
-		paddleY: number,
-		ballY: number,
-		paddleHeight: number,
-		maxBounceAngle: number = Math.PI / 4 // 45°
+			paddleY: number,
+			ballY: number,
+			paddleHeight: number,
+			maxBounceAngle: number = Math.PI / 4 // 45°
 		) => {
-		const relativeIntersectY = (paddleY + paddleHeight / 2) - (ballY + 5); // balle centrée
-		const normalizedRelativeIntersectionY = relativeIntersectY / (paddleHeight / 2);
-		return normalizedRelativeIntersectionY * maxBounceAngle;
+			const relativeIntersectY = (paddleY + paddleHeight / 2) - (ballY + 5); // balle centrée
+			const normalizedRelativeIntersectionY = relativeIntersectY / (paddleHeight / 2);
+			return normalizedRelativeIntersectionY * maxBounceAngle;
 		};
 
 		const loop = (time: number) => {
@@ -73,10 +106,15 @@ export default function PongGame() {
 			lastTime = time;
 
 			// Paddle movement
-			if (keysPressed['w']) leftPaddle.current.y -= paddleSpeed * delta;
-			if (keysPressed['s']) leftPaddle.current.y += paddleSpeed * delta;
-			if (keysPressed['ArrowUp']) rightPaddle.current.y -= paddleSpeed * delta;
-			if (keysPressed['ArrowDown']) rightPaddle.current.y += paddleSpeed * delta;
+			if (keysPressed['w'])
+				leftPaddle.current.y += paddleSpeed * delta;
+			if (keysPressed['s'])
+				leftPaddle.current.y -= paddleSpeed * delta;
+
+			if (keysPressed['ArrowUp'])
+				rightPaddle.current.y -= paddleSpeed * delta;
+			if (keysPressed['ArrowDown'])
+				rightPaddle.current.y += paddleSpeed * delta;
 
 			// Clamp paddle position
 			leftPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, leftPaddle.current.y));
@@ -123,8 +161,18 @@ export default function PongGame() {
 			}
 
 			// Score if out
-			if (ball.current.x < 0) resetBall('right');
-			if (ball.current.x > canvasWidth) resetBall('left');
+			if (ball.current.x < 0)
+				resetBall('right');
+			if (ball.current.x > canvasWidth)
+				resetBall('left');
+
+			// Mise à jour particules
+			particles.current = particles.current.filter(p => p.opacity > 0);
+			particles.current.forEach(p => {
+				p.x += p.vx * delta;
+				p.y += p.vy * delta;
+				p.opacity -= delta * 1; // disparition en 1 sec environ
+			});
 
 			// Draw
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -147,10 +195,20 @@ export default function PongGame() {
 			context.fillStyle = 'magenta';
 			context.fillRect(rightPaddle.current.x, rightPaddle.current.y, paddleWidth, paddleHeight);
 
+			// Draw particles
+			particles.current.forEach(p => {
+				context.shadowColor = p.color;
+				context.shadowBlur = 20; // ou adapte la valeur si tu veux un effet plus ou moins flou
+
+				context.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.opacity})`;
+				context.beginPath();
+				context.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+				context.fill();
+			});
+
 			// Reset shadows to prevent affecting other drawings
 			context.shadowColor = 'transparent';
 			context.shadowBlur = 0;
-
 
 			requestAnimationFrame(loop);
 		};
