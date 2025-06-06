@@ -21,7 +21,7 @@ const TournamentBracket: React.FC<Props> = ({ matches }) => {
   const rounds = [1, 2, 3]; // quart, demi, finale
 
   return (
-    <div className="flex space-x-8 mt-16">
+    <div className="flex space-x-8 mt-[50px]">
       {rounds.map((round) => (
         <div key={round} className="flex flex-col space-y-4">
           <h3 className="text-white text-center font-bold">

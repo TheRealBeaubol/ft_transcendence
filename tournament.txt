@@ -18,3 +18,7 @@ Once you've join a tournament -> question ? can u join mutiple tournament
 																					->can see if u wanting for an oppenent -> if not the rest of time before ur match
 																					(-> option to see details of match onclick, profil of player details on click ect)
 																					(-> if necessary a table score with point of each player)
+
+
+
+->list of tournament
