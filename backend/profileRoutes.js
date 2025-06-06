@@ -99,4 +99,37 @@ export default async function profileRoutes(fastify) {
 
 		return reply.send({ success: true, message: 'Compte supprimé avec succès.' });
 	});
+	
+	fastify.put('/api/profile/language', {preHandler: fastify.authenticate }, async (request, reply) => {
+		const { language } = request.body;
+		const userId = request.user.id;
+		if (!userId) {
+			return reply.status(401).send({ error: 'User not authenticated' });
+		}
+
+		if (!['en', 'fr'].includes(language)) {
+			return reply.status(400).send({ error: 'Invalid language code' });
+		}
+
+		const db = await openDb();
+		await db.run('UPDATE users SET language = ? WHERE id = ?', language, userId);
+
+		reply.send({ success: true });
+	});
+
+	fastify.get('/api/profile/language', {preHandler: fastify.authenticate }, async (request, reply) => {
+		const db = await openDb();
+		const userId = request.user.id;
+		if (!userId) {
+			return reply.status(401).send({ error: 'User not authenticated' });
+		}
+
+		const user = await db.get('SELECT language FROM users WHERE id = ?', userId);
+
+		if (!user) {
+			return reply.status(404).send({ error: 'User not found' });
+		}
+
+		reply.send({ language: user.language || 'en' });
+	});
 }

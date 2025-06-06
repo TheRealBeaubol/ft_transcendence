@@ -19,7 +19,8 @@ export async function initDb() {
 			username TEXT UNIQUE,
 			password TEXT,
 			email TEXT,
-			avatar TEXT
+			avatar TEXT,
+			language TEXT DEFAULT 'en'
 		);
 		CREATE TABLE IF NOT EXISTS friends (
 			user_id INTEGER NOT NULL,

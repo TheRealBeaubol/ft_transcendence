@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Friend = {
 	id: number;
@@ -16,7 +17,7 @@ type FriendRequest = {
 	created_at: string;
 };
 
-export default function FriendList() {
+export default function FriendBox() {
 	const [friends, setFriends] = useState<Friend[]>([]);
 	const [requests, setRequests] = useState<FriendRequest[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -27,6 +28,7 @@ export default function FriendList() {
 	const [friendStatus, setFriendStatus] = useState<FriendStatus>({});
 	const [showModalDeleteFriend, setShowModalDeleteFriend] = useState(false);
 	const [showModalFriendRequests, setShowModalFriendRequests] = useState(false);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		async function fetchData() {
@@ -201,16 +203,16 @@ export default function FriendList() {
 		}
 	};
 
-	if (loading) return <p>Chargement...</p>;
+	if (loading) return <p>{t('loading')}</p>;
 	if (error) return <p className="text-red-500">{error}</p>;
 
 	return (
 		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
 			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">
 				<div className="flex flex-col flex-grow overflow-auto pr-1">
-					<h2 className="text-xl font-bold mb-4 flex justify-center">Friends list</h2>
+					<h2 className="text-xl font-bold mb-4 flex justify-center">{t('friends_list')}</h2>
 					{friends.length === 0 ? (
-						<p>You don't have any friends yet.</p>
+						<p>{t('no_friends')}</p>
 					) : (
 						<ul>
 							{friends.map((friend) => (
@@ -235,10 +237,10 @@ export default function FriendList() {
 						onChange={(e) => setFriendUsername(e.target.value)} placeholder="Enter username"
 						className="w-full p-3 rounded-2xl border border-cyan-500 bg-black bg-opacity-60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-h-[40px]"/>
 					<button onClick={handleAddFriend} className="w-full bg-cyan-500 text-black font-bold px-4 py-3 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px]">
-						Send Friend Request
+						{t('send_friend_request')}
 					</button>
 					<button onClick={() => setShowModalFriendRequests(true)} className="w-full bg-cyan-500 text-black font-bold px-4 py-2 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px] relative">
-						Friend Requests
+						{t('friend_requests')}
 						{requests.length > 0 && (
 						<span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
 							{requests.length > 9 ? '9+' : requests.length}
@@ -251,20 +253,20 @@ export default function FriendList() {
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-cyan-500 p-1 rounded-2xl">
 							<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px]">
-								<h3 className="text-xl font-bold text-center mb-4">Confirm Deletion</h3>
+								<h3 className="text-xl font-bold text-center mb-4">{t('confirm_deletion')}</h3>
 								<p className="text-center mb-6">
-									Are you sure you want to remove{' '}
+									{t('are_you_sure')}{' '}
 									<span className="font-bold text-lg text-blue-500">
 										{friendToDelete.username}
 									</span>
-									{' '}from your friends list?
+									{' '}{t('from_your_friends')}?
 								</p>
 								<div className="flex justify-between mt-4">
 									<button onClick={() => setShowModalDeleteFriend(false)} className="flex-1 px-4 py-2 bg-gray-500 rounded hover:bg-gray-400 mr-2">
-										Cancel
+										{t('cancel')}
 									</button>
 									<button onClick={() => { handleRemoveFriend(friendToDelete.id); setShowModalDeleteFriend(false);}} className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 ml-2">
-										Delete
+										{t('delete')}
 									</button>
 								</div>
 							</div>
@@ -276,9 +278,9 @@ export default function FriendList() {
 					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 						<div className="bg-cyan-500 p-1 rounded-2xl">
 							<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px] max-h-[80vh] overflow-auto">
-								<h3 className="text-xl font-bold text-center mb-4">Friend Requests</h3>
+								<h3 className="text-xl font-bold text-center mb-4">{t('friend_requests')}</h3>
 								{requests.length === 0 ? (
-								<p className="text-center text-gray-400">No new friend requests.</p>
+								<p className="text-center text-gray-400">{t('no_new_requests')}</p>
 								) : (
 								<ul className="space-y-3">
 									{requests.map((req) => (
@@ -288,10 +290,10 @@ export default function FriendList() {
 										</span>
 										<div className="flex gap-2">
 										<button onClick={() => handleRespondRequest(req.id, true)} className="bg-green-500 px-3 py-1 rounded hover:bg-green-400">
-											Accept
+											{t('accept')}
 										</button>
 										<button onClick={() => handleRespondRequest(req.id, false)} className="bg-red-500 px-3 py-1 rounded hover:bg-red-400">
-											Decline
+											{t('decline')}
 										</button>
 										</div>
 									</li>
@@ -299,7 +301,7 @@ export default function FriendList() {
 								</ul>
 								)}
 								<button onClick={() => { setShowModalFriendRequests(false);}} className="mt-6 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded">
-									Close
+									{t('close')}
 								</button>
 							</div>
 						</div>

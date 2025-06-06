@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../UserContext';
+import { useTranslation } from 'react-i18next';
 
 interface DeleteAccountBoxProps {
 	onDeleteSuccess: () => void;
@@ -19,6 +20,7 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const { user, setUser } = useUser();
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		let timer: NodeJS.Timeout;
@@ -84,7 +86,7 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 	return (
 		<>
 			<button onClick={() => { setShowModal(true); setCountdown(5); setPassword(''); setConfirmPassword(''); setError(''); }} className="mt-6 w-full bg-red-600 hover:bg-red-700 rounded font-bold text-white py-2 transition">
-				Delete Account
+				{t('delete_account')}
 			</button>
 
 			{showModal && (
@@ -94,9 +96,9 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 						<button onClick={() => setShowModal(false)} className="absolute top-3 right-5 text-red-500 hover:text-red-700 font-bold" aria-label="Close modal">
 							×
 						</button>
-						<h2 className="text-2xl font-bold text-red-500 text-center mb-4">Confirm Account Deletion</h2>
+						<h2 className="text-2xl font-bold text-red-500 text-center mb-4">{t('confirm_account_deletion')}</h2>
 						<div className="relative">
-							<input type={showPassword ? "text" : "password"} placeholder="Password"
+							<input type={showPassword ? "text" : "password"} placeholder={t('password')}
 								value={password} onChange={(e) => setPassword(e.target.value)}
 								className="bg-white/10 border border-red-500 rounded px-4 py-2 text-white placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-400"/>
 							<button type="button" onClick={() => setShowPassword(prev => !prev)} className="absolute right-3 top-2.5 text-red-300 hover:text-white">
@@ -104,7 +106,7 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 							</button>
 						</div>
 						<div className="relative">
-							<input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password"
+							<input type={showConfirmPassword ? "text" : "password"} placeholder={t('confirm_password')}
 								value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
 								className="bg-white/10 border border-red-500 rounded px-4 py-2 text-white placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 mb-5"/>
 							<button type="button" onClick={() => setShowConfirmPassword(prev => !prev)} className="absolute right-3 top-2.5 text-red-300 hover:text-white">
@@ -115,14 +117,14 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 
 						{countdown > 0 ? (
 							<p className="text-center text-red-400">
-								You can delete your account in {countdown} second{countdown > 1 ? 's' : ''}...
+								{t('you_can_delete_your_account_in')}{countdown} {t('second')}{countdown > 1 ? 's' : ''}...
 							</p>
 						
 						) : (
 						
 						<button onClick={handleDelete} disabled={isDeleting} className={`w-full py-2 rounded font-bold transition ${isDeleting ? 'bg-red-900 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white`}>
-								{isDeleting ? 'Deleting...' : 'Delete Account'}
-							</button>
+								{isDeleting ? t('deleting') : t('delete_account')}
+						</button>
 						)}
 
 					</div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../UserContext';
 import { Eye, EyeOff } from 'lucide-react';
 import UserDataMenu from './UserDataMenu';
+import { useTranslation } from 'react-i18next';
 
 interface User {
 	id: number;
@@ -21,6 +22,7 @@ export default function ProfileManagementBox() {
 	const [showOldPassword, setShowOldPassword] = useState(false);
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const token = localStorage.getItem('jwt_token');
@@ -127,10 +129,10 @@ export default function ProfileManagementBox() {
 				<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-md">
 					<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-6">
 						<span className="text-sm text-cyan-200 text-center">
-							Please log in to manage your profile.
+							{t('please_log_in_to_manage_your_profile')}.
 						</span>
 						<button onClick={() => navigate('/login')} className="bg-cyan-600 hover:bg-cyan-700 rounded px-4 py-2 font-bold text-white transition">
-							Log in
+							{t('log_in')}
 						</button>
 					</div>
 				</div>
@@ -144,16 +146,16 @@ export default function ProfileManagementBox() {
 		<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-md">
 			<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-4">
 				<span className="text-2xl text-center mb-10">
-					Edit your profile
+					{t('edit_your_profile')}
 				</span>
-				<input type="email" placeholder="New Email"
+				<input type="email" placeholder={t('new_email')}
 					value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
 					className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
-				<input type="text" placeholder="New Username" value={newUsername}
+				<input type="text" placeholder={t('new_username')} value={newUsername}
 					onChange={(e) => setNewUsername(e.target.value)}
 					className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 mb-10"/>
 				<div className="relative">
-					<input type={showNewPassword ? "text" : "password"} placeholder="New Password"
+					<input type={showNewPassword ? "text" : "password"} placeholder={t('new_password')}
 						value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
 						className="bg-white/10 border border-cyan-300 rounded px-4 py-2 pr-10 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full"/>
 					<button type="button" onClick={() => setShowNewPassword(prev => !prev)} className="absolute right-3 top-2.5 text-cyan-300 hover:text-white">
@@ -161,7 +163,7 @@ export default function ProfileManagementBox() {
 					</button>
 				</div>
 				<div className="relative mb-10">
-					<input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm New Password"
+					<input type={showConfirmPassword ? "text" : "password"} placeholder={t('confirm_new_password')}
 						value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
 						className="bg-white/10 border border-cyan-300 rounded px-4 py-2 pr-10 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full"/>
 					<button type="button" onClick={() => setShowConfirmPassword(prev => !prev)} className="absolute right-3 top-2.5 text-cyan-300 hover:text-white">
@@ -169,7 +171,7 @@ export default function ProfileManagementBox() {
 					</button>
 				</div>
 				<div className="relative mb-12">
-					<input type={showOldPassword ? "text" : "password"} placeholder="Old Password (Required)"
+					<input type={showOldPassword ? "text" : "password"} placeholder={t('old_password_required')}
 						value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}
 						className="bg-white/10 border border-cyan-300 rounded px-4 py-2 pr-10 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full"/>
 					<button type="button" onClick={() => setShowOldPassword(prev => !prev)} className="absolute right-3 top-2.5 text-cyan-300 hover:text-white">
@@ -178,10 +180,10 @@ export default function ProfileManagementBox() {
 				</div>
 				<div className="flex align-center justify-between gap-16">
 					<button onClick={handleSaveChanges} className="w-1/2 h-10 bg-green-600 hover:bg-green-700 rounded font-bold text-white transition ">
-						Save Changes
+						{t('save_changes')}
 					</button>
 					<button onClick={handleLogout} className="w-1/2 bg-red-600 hover:bg-red-700 rounded font-bold text-white transition">
-						Log out
+						{t('log_out')}
 					</button>
 				</div>
 			</div>
