@@ -1,319 +1,312 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 type Friend = {
-id: number;
-username: string;
-avatar?: string;
+	id: number;
+	username: string;
+	avatar?: string;
 };
 
 type FriendStatus = {
-[userId: number]: boolean;
+	[userId: number]: boolean;
 };
 
 type FriendRequest = {
-id: number;
-requester: Friend;
-created_at: string;
+	id: number;
+	requester: Friend;
+	created_at: string;
 };
 
 export default function FriendList() {
-const [friends, setFriends] = useState<Friend[]>([]);
-const [requests, setRequests] = useState<FriendRequest[]>([]);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
-const [friendUsername, setFriendUsername] = useState('');
-const [message, setMessage] = useState<string | null>(null);
-const [showModal, setShowModal] = useState(false);
-const [showFriendRequests, setShowFriendRequests] = useState(false);
-const [friendToDelete, setFriendToDelete] = useState<Friend | null>(null);
-const [friendStatus, setFriendStatus] = useState<FriendStatus>({});
+	const [friends, setFriends] = useState<Friend[]>([]);
+	const [requests, setRequests] = useState<FriendRequest[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [friendUsername, setFriendUsername] = useState('');
+	const [message, setMessage] = useState<string | null>(null);
+	const [friendToDelete, setFriendToDelete] = useState<Friend | null>(null);
+	const [friendStatus, setFriendStatus] = useState<FriendStatus>({});
+	const [showModalDeleteFriend, setShowModalDeleteFriend] = useState(false);
+	const [showModalFriendRequests, setShowModalFriendRequests] = useState(false);
 
-useEffect(() => {
-	async function fetchData() {
+	useEffect(() => {
+		async function fetchData() {
+			try {
+				const token = localStorage.getItem('jwt_token');
+				if (!token) return;
+
+				setLoading(true);
+				const resFriends = await fetch('/api/friends', {
+					headers: { Authorization: `Bearer ${token}` },
+					credentials: 'include',
+				});
+				if (!resFriends.ok) throw new Error('Erreur lors du chargement des amis');
+				const friendsData: Friend[] = await resFriends.json();
+				setFriends(friendsData);
+
+				const resRequests = await fetch('/api/friend-requests/received', {
+					headers: { Authorization: `Bearer ${token}` },
+					credentials: 'include',
+				});
+				if (!resRequests.ok) throw new Error('Erreur lors du chargement des demandes');
+				const requestsData: FriendRequest[] = await resRequests.json();
+				setRequests(requestsData);
+
+			} catch (err: any) {
+				setError(err.message || 'Erreur inconnue');
+			} finally {
+				setLoading(false);
+			}
+		}
+		fetchData();
+	}, []);
+
+	useEffect(() => {
+		const wsRef = { current: null as WebSocket | null };
+		const reconnectTimeoutRef = { current: null as number | null };
+		let reconnectAttempts = 0;
+
+		const token = localStorage.getItem('jwt_token');
+		if (!token) {
+			console.warn("⚠️ Pas de token JWT, websocket non démarré");
+			return;
+		}
+
+		function connect() {
+			console.log("🧾 Tentative de connexion WebSocket avec token :", token);
+
+			const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
+			wsRef.current = ws;
+
+			ws.onopen = () => {
+				console.log("✅ WebSocket connecté");
+				reconnectAttempts = 0; // reset compteur de reconnexion
+			};
+
+			ws.onmessage = (event) => {
+				
+			console.log("Message reçu :", event.data);
+			try {
+				const data = JSON.parse(event.data);
+				if (data.type === 'friend_status' && data.userId !== undefined && typeof data.online === 'boolean') {
+				setFriendStatus(prev => ({
+					...prev,
+					[data.userId]: data.online,
+				}));
+				}
+			} catch (e) {
+				console.warn("Erreur JSON dans message WS :", e);
+			}
+			};
+			ws.onerror = (err) => {
+				console.error("🚨 WebSocket erreur :", err);
+			};
+			ws.onclose = (event) => {
+				console.warn(`❌ WebSocket déconnecté, code=${event.code}, reason=${event.reason}`);
+
+				if (reconnectAttempts < 10) {
+					const delay = 3000
+					console.log(`⏳ Reconnexion dans ${delay / 1000}s...`);
+					reconnectTimeoutRef.current = window.setTimeout(() => {
+					reconnectAttempts++;
+					connect();
+					}, delay);
+				} else {
+					console.error("❌ Trop de tentatives de reconnexion, arrêt.");
+				}
+			};
+		}
+
+		connect();
+
+		return () => {
+			if (reconnectTimeoutRef.current) {
+			clearTimeout(reconnectTimeoutRef.current);
+			}
+			if (wsRef.current) {
+			console.log("🔒 Fermeture propre du WebSocket côté client");
+			wsRef.current.close();
+			}
+		};
+	}, []);
+
+	const handleAddFriend = async () => {
 		try {
-			const token = localStorage.getItem('jwt_token');
-			if (!token) return;
-
-			setLoading(true);
-			const resFriends = await fetch('/api/friends', {
-				headers: { Authorization: `Bearer ${token}` },
-				credentials: 'include',
+			setMessage(null);
+			setError(null);
+			const response = await fetch('/api/friend-requests/send', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
+				},
+				body: JSON.stringify({ friendUsername }),
 			});
-			if (!resFriends.ok) throw new Error('Erreur lors du chargement des amis');
-			const friendsData: Friend[] = await resFriends.json();
-			setFriends(friendsData);
-
-			const resRequests = await fetch('/api/friend-requests/received', {
-				headers: { Authorization: `Bearer ${token}` },
-				credentials: 'include',
-			});
-			if (!resRequests.ok) throw new Error('Erreur lors du chargement des demandes');
-			const requestsData: FriendRequest[] = await resRequests.json();
-			setRequests(requestsData);
-
+			const data = await response.json();
+			if (!response.ok) {
+				setError(data.error || 'Erreur inconnue');
+				return;
+			}
+			setMessage(`Demande envoyée à ${friendUsername} avec succès.`);
+			setFriendUsername('');
 		} catch (err: any) {
 			setError(err.message || 'Erreur inconnue');
-		} finally {
-			setLoading(false);
 		}
-	}
-	fetchData();
-}, []);
-
-
-useEffect(() => {
-const wsRef = { current: null as WebSocket | null };
-const reconnectTimeoutRef = { current: null as number | null };
-let reconnectAttempts = 0;
-
-const token = localStorage.getItem('jwt_token');
-if (!token) {
-	console.warn("⚠️ Pas de token JWT, websocket non démarré");
-	return;
-}
-
-function connect() {
-	console.log("🧾 Tentative de connexion WebSocket avec token :", token);
-
-	const ws = new WebSocket(`ws://localhost:3000/api/friend-status?token=${token}`);
-	wsRef.current = ws;
-
-	ws.onopen = () => {
-	console.log("✅ WebSocket connecté");
-	reconnectAttempts = 0; // reset compteur de reconnexion
 	};
 
-	ws.onmessage = (event) => {
-		
-	console.log("Message reçu :", event.data);
-	try {
-		const data = JSON.parse(event.data);
+	const handleRespondRequest = async (requestId: number, accept: boolean) => {
+		try {
+			const response = await fetch('/api/friend-requests/respond', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
+				},
+				body: JSON.stringify({ requestId, accept }),
+			});
+			const data = await response.json();
+			if (!response.ok) {
+				setError(data.error || 'Erreur inconnue');
+				return;
+			}
+			setMessage(accept ? 'Demande acceptée' : 'Demande refusée');
 
-		// Exemple : mise à jour du status d'un ami (à adapter selon format serveur)
-		if (data.type === 'friend_status' && data.userId !== undefined && typeof data.online === 'boolean') {
-		setFriendStatus(prev => ({
-			...prev,
-			[data.userId]: data.online,
-		}));
+			setRequests(requests.filter(r => r.id !== requestId));
+			if (accept && data.friend) {
+				setFriends(prev => [...prev, data.friend]);
+			}
+		} catch (err: any) {
+			setError(err.message || 'Erreur inconnue');
 		}
-		// Tu peux gérer d'autres types de messages ici
-
-	} catch (e) {
-		// ignore JSON parse errors
-		console.warn("Erreur JSON dans message WS :", e);
-	}
 	};
 
-	ws.onerror = (err) => {
-	console.error("🚨 WebSocket erreur :", err);
+	const handleRemoveFriend = async (friendId: number) => {
+		try {
+			const response = await fetch(`/api/friends/remove/${friendId}`, {
+				method: 'DELETE',
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
+				},
+			});
+
+			const data = await response.json();
+			if (!response.ok) {
+				setError(data.error || 'Erreur inconnue');
+				return;
+			}
+
+			setFriends(friends.filter(friend => friend.id !== friendId));
+			setMessage('Ami supprimé avec succès');
+		} catch (err: any) {
+			setError(err.message || 'Erreur inconnue');
+		}
 	};
-	ws.onclose = (event) => {
-	console.warn(`❌ WebSocket déconnecté, code=${event.code}, reason=${event.reason}`);
 
-	// Tentative de reconnexion exponentielle max 30s, max 10 tentatives
-	if (reconnectAttempts < 10) {
-		const delay = 3000
-		console.log(`⏳ Reconnexion dans ${delay / 1000}s...`);
-		reconnectTimeoutRef.current = window.setTimeout(() => {
-		reconnectAttempts++;
-		connect();
-		}, delay);
-	} else {
-		console.error("❌ Trop de tentatives de reconnexion, arrêt.");
-	}
-	};
-}
+	if (loading) return <p>Chargement...</p>;
+	if (error) return <p className="text-red-500">{error}</p>;
 
-connect();
-
-return () => {
-	if (reconnectTimeoutRef.current) {
-	clearTimeout(reconnectTimeoutRef.current);
-	}
-	if (wsRef.current) {
-	console.log("🔒 Fermeture propre du WebSocket côté client");
-	wsRef.current.close();
-	}
-};
-}, []);
-
-
-
-const handleAddFriend = async () => {
-	try {
-		setMessage(null);
-		setError(null);
-		const response = await fetch('/api/friend-requests/send', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-			},
-			body: JSON.stringify({ friendUsername }),
-		});
-		const data = await response.json();
-		if (!response.ok) {
-			setError(data.error || 'Erreur inconnue');
-			return;
-		}
-		setMessage(`Demande envoyée à ${friendUsername} avec succès.`);
-		setFriendUsername('');
-	} catch (err: any) {
-		setError(err.message || 'Erreur inconnue');
-	}
-};
-
-const handleRespondRequest = async (requestId: number, accept: boolean) => {
-	try {
-		const response = await fetch('/api/friend-requests/respond', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-			},
-			body: JSON.stringify({ requestId, accept }),
-		});
-		const data = await response.json();
-		if (!response.ok) {
-			setError(data.error || 'Erreur inconnue');
-			return;
-		}
-		setMessage(accept ? 'Demande acceptée' : 'Demande refusée');
-
-		setRequests(requests.filter(r => r.id !== requestId));
-		if (accept && data.friend) {
-			setFriends(prev => [...prev, data.friend]);
-		}
-	} catch (err: any) {
-		setError(err.message || 'Erreur inconnue');
-	}
-};
-
-const handleRemoveFriend = async (friendId: number) => {
-	try {
-		const response = await fetch(`/api/friends/remove/${friendId}`, {
-			method: 'DELETE',
-			headers: {
-				Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-			},
-		});
-
-		const data = await response.json();
-		if (!response.ok) {
-			setError(data.error || 'Erreur inconnue');
-			return;
-		}
-
-		setFriends(friends.filter(friend => friend.id !== friendId));
-		setMessage('Ami supprimé avec succès');
-	} catch (err: any) {
-		setError(err.message || 'Erreur inconnue');
-	}
-};
-
-if (loading) return <p>Chargement...</p>;
-if (error) return <p className="text-red-500">{error}</p>;
-
-return (
-	<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
-		<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">
-			<div className="flex flex-col flex-grow overflow-auto pr-1">
-				<h2 className="text-xl font-bold mb-4 flex justify-center">Friends list</h2>
-				{friends.length === 0 ? (
-					<p>You don't have any friends yet.</p>
-				) : (
-					<ul>
-						{friends.map((friend) => (
-						<li key={friend.id} className="flex items-center justify-between mb-2 max-w-full">
-							<div className="flex items-center gap-3 max-w-[calc(100%-40px)]">
-								<img src={friend.avatar} alt={friend.username} className="w-8 h-8 rounded-full flex-shrink-0" />
-								<span className={`inline-block ml-2 w-2.5 h-2.5 rounded-full ${friendStatus[friend.id] ? 'bg-green-500' : 'bg-gray-400'}`}/>
-								<span className="truncate">	
-									{friend.username}
-								</span>
-							</div>
-								<button onClick={() => { setFriendToDelete(friend); setShowModal(true);}} className="bg-red-500 text-white px-3 py-1 rounded flex-shrink-0 ml-3">
-									×
-								</button>
-						</li>
-						))}
-					</ul>
-				)}
-			</div>
-			<div className="mt-4 w-full max-w-md mx-auto font-mono flex flex-col gap-4" style={{flexShrink: 0}}>
-				<input type="text" value={friendUsername}
-					onChange={(e) => setFriendUsername(e.target.value)} placeholder="Enter username"
-					className="w-full p-3 rounded-2xl border border-cyan-500 bg-black bg-opacity-60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-h-[40px]"/>
-				<button onClick={handleAddFriend} className="w-full bg-cyan-500 text-black font-bold px-4 py-3 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px]">
-					Send Friend Request
-				</button>
-				<button onClick={() => { setShowFriendRequests(true); setShowModal(true);}} className="w-full bg-cyan-500 text-black font-bold px-4 py-2 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px] relative">
-					Friend Requests
-					{requests.length > 0 && (
-					<span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
-						{requests.length > 9 ? '9+' : requests.length}
-					</span>
-					)}
-				</button>
-			</div>
-			{showModal && friendToDelete && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-cyan-500 p-1 rounded-2xl">
-						<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px]">
-							<h3 className="text-xl font-bold text-center mb-4">Confirm Deletion</h3>
-							<p className="text-center mb-6">
-								Are you sure you want to remove{' '}
-								<span className="font-bold text-lg text-blue-500">
-									{friendToDelete.username}
-								</span>
-								{' '}from your friends list?
-							</p>
-							<div className="flex justify-between mt-4">
-								<button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 bg-gray-500 rounded hover:bg-gray-400 mr-2">
-									Cancel
-								</button>
-								<button onClick={() => { handleRemoveFriend(friendToDelete.id); setShowModal(false);}} className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 ml-2">
-									Delete
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			)}
-			{showModal && showFriendRequests && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-cyan-500 p-1 rounded-2xl">
-						<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px] max-h-[80vh] overflow-auto">
-							<h3 className="text-xl font-bold text-center mb-4">Friend Requests</h3>
-							{requests.length === 0 ? (
-							<p className="text-center text-gray-400">No new friend requests.</p>
-							) : (
-							<ul className="space-y-3">
-								{requests.map((req) => (
-								<li key={req.id} className="flex justify-between items-center">
-									<span>
-										{req.requester.username}
+	return (
+		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
+			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">
+				<div className="flex flex-col flex-grow overflow-auto pr-1">
+					<h2 className="text-xl font-bold mb-4 flex justify-center">Friends list</h2>
+					{friends.length === 0 ? (
+						<p>You don't have any friends yet.</p>
+					) : (
+						<ul>
+							{friends.map((friend) => (
+							<li key={friend.id} className="flex items-center justify-between mb-2 max-w-full">
+								<div className="flex items-center gap-3 max-w-[calc(100%-40px)]">
+									<img src={friend.avatar} alt={friend.username} className="w-8 h-8 rounded-full flex-shrink-0" />
+									<span className={`inline-block ml-2 w-2.5 h-2.5 rounded-full ${friendStatus[friend.id] ? 'bg-green-500' : 'bg-gray-400'}`}/>
+									<span className="truncate">	
+										{friend.username}
 									</span>
-									<div className="flex gap-2">
-									<button onClick={() => handleRespondRequest(req.id, true)} className="bg-green-500 px-3 py-1 rounded hover:bg-green-400">
-										Accept
+								</div>
+									<button onClick={() => { setFriendToDelete(friend); setShowModalDeleteFriend(true);}} className="bg-red-500 text-white px-3 py-1 rounded flex-shrink-0 ml-3">
+										×
 									</button>
-									<button onClick={() => handleRespondRequest(req.id, false)} className="bg-red-500 px-3 py-1 rounded hover:bg-red-400">
-										Decline
+							</li>
+							))}
+						</ul>
+					)}
+				</div>
+				<div className="mt-4 w-full max-w-md mx-auto font-mono flex flex-col gap-4" style={{flexShrink: 0}}>
+					<input type="text" value={friendUsername}
+						onChange={(e) => setFriendUsername(e.target.value)} placeholder="Enter username"
+						className="w-full p-3 rounded-2xl border border-cyan-500 bg-black bg-opacity-60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-h-[40px]"/>
+					<button onClick={handleAddFriend} className="w-full bg-cyan-500 text-black font-bold px-4 py-3 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px]">
+						Send Friend Request
+					</button>
+					<button onClick={() => setShowModalFriendRequests(true)} className="w-full bg-cyan-500 text-black font-bold px-4 py-2 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px] relative">
+						Friend Requests
+						{requests.length > 0 && (
+						<span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+							{requests.length > 9 ? '9+' : requests.length}
+						</span>
+						)}
+					</button>
+				</div>
+				
+				{showModalDeleteFriend && friendToDelete && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+						<div className="bg-cyan-500 p-1 rounded-2xl">
+							<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px]">
+								<h3 className="text-xl font-bold text-center mb-4">Confirm Deletion</h3>
+								<p className="text-center mb-6">
+									Are you sure you want to remove{' '}
+									<span className="font-bold text-lg text-blue-500">
+										{friendToDelete.username}
+									</span>
+									{' '}from your friends list?
+								</p>
+								<div className="flex justify-between mt-4">
+									<button onClick={() => setShowModalDeleteFriend(false)} className="flex-1 px-4 py-2 bg-gray-500 rounded hover:bg-gray-400 mr-2">
+										Cancel
 									</button>
-									</div>
-								</li>
-								))}
-							</ul>
-							)}
-							<button onClick={() => { setShowFriendRequests(false); setShowModal(false);}} className="mt-6 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded">
-								Close
-							</button>
+									<button onClick={() => { handleRemoveFriend(friendToDelete.id); setShowModalDeleteFriend(false);}} className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 ml-2">
+										Delete
+									</button>
+								</div>
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
+				)}
+
+				{showModalFriendRequests && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+						<div className="bg-cyan-500 p-1 rounded-2xl">
+							<div className="bg-black bg-opacity-90 rounded-2xl px-6 py-8 text-white font-mono flex flex-col w-[400px] max-h-[80vh] overflow-auto">
+								<h3 className="text-xl font-bold text-center mb-4">Friend Requests</h3>
+								{requests.length === 0 ? (
+								<p className="text-center text-gray-400">No new friend requests.</p>
+								) : (
+								<ul className="space-y-3">
+									{requests.map((req) => (
+									<li key={req.id} className="flex justify-between items-center">
+										<span>
+											{req.requester.username}
+										</span>
+										<div className="flex gap-2">
+										<button onClick={() => handleRespondRequest(req.id, true)} className="bg-green-500 px-3 py-1 rounded hover:bg-green-400">
+											Accept
+										</button>
+										<button onClick={() => handleRespondRequest(req.id, false)} className="bg-red-500 px-3 py-1 rounded hover:bg-red-400">
+											Decline
+										</button>
+										</div>
+									</li>
+									))}
+								</ul>
+								)}
+								<button onClick={() => { setShowModalFriendRequests(false);}} className="mt-6 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded">
+									Close
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
+
+			</div>
 		</div>
-	</div>
-);
+	);
 }

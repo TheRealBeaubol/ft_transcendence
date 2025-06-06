@@ -46,6 +46,7 @@ export default function ProfileBox() {
 	return (
 		<div className="bg-cyan-500 p-1 rounded-bl-full">
 			<div className="bg-black bg-opacity-80 rounded-bl-full px-6 py-2 flex justify-center gap-4 font-mono text-sm text-white">
+				
 				{!user ? (
 				<div className="flex flex-col items-center">
 					<button onClick={() => navigate('/login')} className="translate-x-3 px-6 py-5 cursor-pointer text-white font-bold underline text-base">
@@ -53,6 +54,7 @@ export default function ProfileBox() {
 					</button>
 				</div>
 				) : (
+
 				<div className="relative px-4">
 					<div className="flex gap-4">
 						{user.avatar && (<img src={user.avatar} alt="Avatar" className="w-20 h-20 rounded-full border-2 border-cyan-300"/>)}
@@ -70,6 +72,7 @@ export default function ProfileBox() {
 					</button>
 				</div>
 				)}
+
 		</div>
 	</div>
 	);

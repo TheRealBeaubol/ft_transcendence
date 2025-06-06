@@ -23,7 +23,7 @@ export default function LoginBox() {
 				return;
 			}
 			localStorage.setItem('jwt_token', data.token);
-			navigate('/');
+			navigate('/home');
 		} catch (err) {
 			console.error(err);
 			alert('Impossible de contacter le serveur');

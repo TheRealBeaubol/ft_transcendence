@@ -112,15 +112,19 @@ export default function DeleteAccountBox({ onDeleteSuccess }: DeleteAccountBoxPr
 							</button>
 						</div>
 						{error && <p className="text-red-400 text-center">{error}</p>}
+
 						{countdown > 0 ? (
 							<p className="text-center text-red-400">
 								You can delete your account in {countdown} second{countdown > 1 ? 's' : ''}...
 							</p>
+						
 						) : (
-							<button onClick={handleDelete} disabled={isDeleting} className={`w-full py-2 rounded font-bold transition ${isDeleting ? 'bg-red-900 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white`}>
+						
+						<button onClick={handleDelete} disabled={isDeleting} className={`w-full py-2 rounded font-bold transition ${isDeleting ? 'bg-red-900 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'} text-white`}>
 								{isDeleting ? 'Deleting...' : 'Delete Account'}
 							</button>
 						)}
+
 					</div>
 				</div>
 			</div>

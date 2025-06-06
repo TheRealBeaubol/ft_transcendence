@@ -26,8 +26,8 @@ const fastify = Fastify({
 });
 
 await fastify.register(fastifyCors, {
-  origin: 'http://localhost:5173', // Remplacez par l'URL de votre frontend
-  credentials: true, // autorise les cookies / headers d’auth
+  origin: 'http://localhost:5173',
+  credentials: true,
 });
 
 function formatDate(date)
@@ -47,7 +47,10 @@ function formatDate(date)
 fastify.addHook('onRequest', async (request, reply) => {
 	console.log(`------------------------------------------`);
 	console.log(`${formatDate(new Date())} : ${request.ip} -> ${request.method} ${request.url}`);
-	console.log('Headers:', request.headers);
+	console.log('Headers: {');
+	console.log(`		host: ${request.headers.host}`);
+	console.log(`		origin: ${request.headers.origin}`);
+	console.log(`}`);
 	// if (request.body) {
 	// 	console.log('Body:', request.body);
 	// }
