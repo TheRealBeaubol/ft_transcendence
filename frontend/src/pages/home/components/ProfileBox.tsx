@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { LogOut, UserRoundCog } from 'lucide-react';
 
 interface User {
 	id: number;
@@ -46,36 +47,33 @@ export default function ProfileBox() {
 	};
 
 	return (
-		<div className="bg-cyan-500 p-1 rounded-bl-full">
-			<div className="bg-black bg-opacity-80 rounded-bl-full px-6 py-2 flex justify-center gap-4 font-mono text-sm text-white">
-				
-				{!user ? (
-				<div className="flex flex-col items-center">
-					<button onClick={() => navigate('/login')} className="translate-x-3 px-6 py-5 cursor-pointer text-white font-bold underline text-base">
-						{t('sign_in_or_log_in')}
+		<div className="bg-cyan-500 p-1 rounded-b-custom">
+			<div className="bg-black bg-opacity-80 rounded-b-custom px-16 py-2 font-mono text-sm text-white">	
+			{!user ? (
+				<div className="flex items-center">
+					<button onClick={() => navigate('/login')} className="px-6 py-3 text-base font-bold text-white underline transition hover:opacity-90">
+					{t('sign_in_or_log_in')}
 					</button>
 				</div>
-				) : (
-
-				<div className="relative px-4">
-					<div className="flex gap-4">
-						{user.avatar && (<img src={user.avatar} alt={t('avatar_alt')} className="w-20 h-20 rounded-full border-2 border-cyan-300"/>)}
-						<div className="flex flex-col py-2">
-							<span className="text-sm">
-								{user.username}
-							</span>
-							<span onClick={() => navigate('/profile')} className="text-sm underline cursor-pointer">
-								{t('edit_profile')}
-							</span>
+			) : (
+				<div className="flex items-center gap-2 text-center">
+					{user.avatar && (<img src={user.avatar} alt={t('avatar_alt')} className="w-24 h-24 rounded-full border-2 mr-8 border-cyan-300 object-cover"/>)}
+					<div className="flex items-center flex-col gap-4">
+						<span className="text-base font-semibold break-words max-w-[10rem]">
+							{user.username}
+						</span>
+						<div className="flex gap-4">
+							<button onClick={() => navigate('/profile')} className="bg-gray-600 hover:bg-gray-700 rounded px-3 py-2 transition">
+								<UserRoundCog size={20} />
+							</button>
+							<button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 rounded px-3 py-2 transition">
+								<LogOut size={20} />
+							</button>
 						</div>
 					</div>
-					<button onClick={handleLogout} className="absolute bottom-2 right-3 bg-red-600 hover:bg-red-700 rounded px-1 py-0.5 font-bold text-white transition">
-						{t('log_out')}
-					</button>
 				</div>
 				)}
-
+			</div>
 		</div>
-	</div>
 	);
 }

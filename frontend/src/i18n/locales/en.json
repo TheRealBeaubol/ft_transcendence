@@ -44,5 +44,7 @@
     "email": "Email",
     "already_have_account": "You already have an account",
     "register": "Register",
-    "language": "Language"
+    "language": "Language",
+    "save_language": "Save Language",
+    "enter_username": "Enter username"
 }

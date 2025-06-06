@@ -178,8 +178,8 @@ export default function ProfileManagementBox() {
 						{showOldPassword ? <Eye size={20} /> : <EyeOff size={20} />}
 					</button>
 				</div>
-				<div className="flex align-center justify-between gap-16">
-					<button onClick={handleSaveChanges} className="w-1/2 h-10 bg-green-600 hover:bg-green-700 rounded font-bold text-white transition ">
+				<div className="flex align-center justify-between gap-10">
+					<button onClick={handleSaveChanges} className="w-1/2 h-12 bg-green-600 hover:bg-green-700 rounded font-bold text-white transition ">
 						{t('save_changes')}
 					</button>
 					<button onClick={handleLogout} className="w-1/2 bg-red-600 hover:bg-red-700 rounded font-bold text-white transition">

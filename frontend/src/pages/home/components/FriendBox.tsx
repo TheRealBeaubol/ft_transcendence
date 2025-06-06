@@ -204,27 +204,29 @@ export default function FriendBox() {
 	};
 
 	if (loading) return <p>{t('loading')}</p>;
-	if (error) return <p className="text-red-500">{error}</p>;
-
+	
 	return (
-		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 max-h-[90vh] flex flex-col">
-			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow overflow-hidden">
-				<div className="flex flex-col flex-grow overflow-auto pr-1">
-					<h2 className="text-xl font-bold mb-4 flex justify-center">{t('friends_list')}</h2>
+		<div className="bg-cyan-500 p-1 rounded-2xl flex-1 m-5 flex w-[300px] flex-col">
+			<div className="bg-black bg-opacity-80 rounded-2xl px-4 py-6 text-white font-mono flex flex-col flex-grow  overflow-auto">
+				<h2 className="text-xl font-bold mb-4 flex justify-center">{t('friends_list')}</h2>
+				<div className="flex flex-col flex-grow overflow-visible pr-1">
 					{friends.length === 0 ? (
 						<p>{t('no_friends')}</p>
 					) : (
 						<ul>
 							{friends.map((friend) => (
-							<li key={friend.id} className="flex items-center justify-between mb-2 max-w-full">
+								<li key={friend.id} className="flex items-center justify-between mb-2 max-w-full">
 								<div className="flex items-center gap-3 max-w-[calc(100%-40px)]">
-									<img src={friend.avatar} alt={friend.username} className="w-8 h-8 rounded-full flex-shrink-0" />
-									<span className={`inline-block ml-2 w-2.5 h-2.5 rounded-full ${friendStatus[friend.id] ? 'bg-green-500' : 'bg-gray-400'}`}/>
+									<div className="relative w-8 h-8 flex-shrink-0">
+										<img src={friend.avatar} alt={friend.username} className="w-8 h-8 rounded-full" />
+										<span className={`absolute bottom-0 left-0 w-3 h-3 rounded-full border-2 border-black
+											${friendStatus[friend.id] ? 'bg-green-500' : 'bg-gray-400'}`} style={{ transform: 'translate(-25%, 25%)' }}/>
+									</div>
 									<span className="truncate">	
 										{friend.username}
 									</span>
 								</div>
-									<button onClick={() => { setFriendToDelete(friend); setShowModalDeleteFriend(true);}} className="bg-red-500 text-white px-3 py-1 rounded flex-shrink-0 ml-3">
+									<button onClick={() => { setFriendToDelete(friend); setShowModalDeleteFriend(true);}} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex-shrink-0 ml-3">
 										×
 									</button>
 							</li>
@@ -232,17 +234,22 @@ export default function FriendBox() {
 						</ul>
 					)}
 				</div>
-				<div className="mt-4 w-full max-w-md mx-auto font-mono flex flex-col gap-4" style={{flexShrink: 0}}>
+				<div className="mt-3 flex flex-col gap-4" style={{flexShrink: 0}}>
+					{error && (
+						<div className="text-red-500 text-center font-bold line-clamp-2 overflow-hidden max-w-[300px] w-full block break-words mx-auto">
+								{error}
+						</div>
+					)}
 					<input type="text" value={friendUsername}
-						onChange={(e) => setFriendUsername(e.target.value)} placeholder="Enter username"
-						className="w-full p-3 rounded-2xl border border-cyan-500 bg-black bg-opacity-60 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-h-[40px]"/>
+						onChange={(e) => setFriendUsername(e.target.value)} placeholder={t('enter_username')}
+						className="w-full p-3 rounded-2xl border border-cyan-500 bg-black bg-opacity-60 text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 min-h-[40px]"/>
 					<button onClick={handleAddFriend} className="w-full bg-cyan-500 text-black font-bold px-4 py-3 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px]">
 						{t('send_friend_request')}
 					</button>
 					<button onClick={() => setShowModalFriendRequests(true)} className="w-full bg-cyan-500 text-black font-bold px-4 py-2 rounded-2xl hover:bg-cyan-400 transition-shadow shadow-md hover:shadow-lg min-h-[40px] relative">
 						{t('friend_requests')}
 						{requests.length > 0 && (
-						<span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+							<span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
 							{requests.length > 9 ? '9+' : requests.length}
 						</span>
 						)}

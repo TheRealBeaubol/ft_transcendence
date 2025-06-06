@@ -124,10 +124,10 @@ export default function UserDataMenu() {
 		<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-md">
 			<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-10 text-white font-mono flex flex-col gap-4 items-center">
 				{user.avatar && (<img src={user.avatar} alt={t('avatar_alt')} className="w-24 h-24 rounded-full border-2 border-cyan-300 mb-4"/>)}
-				<input type="text" placeholder={t('new_avatar_url')}
+				<input type="text" placeholder={t('avatar_placeholder')}
 					value={newAvatar} onChange={(e) => setNewAvatar(e.target.value)}
 					className="bg-white/10 border border-cyan-300 rounded px-4 py-2 text-white placeholder:text-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-400 w-full mb-6"/>
-				<div className="flex w-full gap-16 h-10">
+				<div className="flex w-full gap-10 h-12">
 					<button onClick={handleSaveAvatar} className="w-1/2 bg-green-600 hover:bg-green-700 rounded font-bold text-white transition ">
 						{t('save_avatar')}
 					</button>
@@ -152,7 +152,9 @@ export default function UserDataMenu() {
 							{user.email}
 						</span>
 					</div>
-					<div className="flex justify-between items-center">
+				</div>
+				<div className="text-lg text-cyan-200 text-left mt-6 w-full space-y-2">
+					<div className="flex justify-between items-center mb-6">
 						<span className="font-bold">
 							{t('language')}:
 						</span>
@@ -160,10 +162,10 @@ export default function UserDataMenu() {
 							<option value="en">English</option>
 							<option value="fr">Français</option>
 						</select>
-						<button onClick={handleLanguageSave} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
-							{t('save_changes')}
-						</button>
 					</div>
+					<button onClick={handleLanguageSave} className="w-full bg-green-600 hover:bg-green-700 rounded font-bold text-white py-2 transition">
+						{t('save_language')}
+					</button>
 				</div>
 				<DeleteAccountBox onDeleteSuccess={handleDeleteSuccess} />
 			</div>
