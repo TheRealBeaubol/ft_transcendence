@@ -14,7 +14,7 @@ const BoxTournois: React.FC = () => {
     const fetchTournaments = async () => {
       try {
         const token = localStorage.getItem('jwt_token');
-        const res = await fetch('/api/tournaments', {
+        const res = await fetch('/api/tournaments/available', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

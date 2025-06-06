@@ -51,4 +51,25 @@ export default async function tournamentRoutes(fastify) {
       reply.code(500).send({ error: 'Erreur lors de la récupération des tournois' });
     }
   });
+
+  fastify.get('/api/tournaments/available', { preValidation: [fastify.authenticate] }, async (request, reply) => {
+  const userId = request.user.id;
+
+  try {
+    const tournaments = await fastify.db.all(`
+      SELECT t.id, t.name
+      FROM tournaments t
+      WHERE t.id NOT IN (
+        SELECT tp.tournament_id
+        FROM tournament_players tp
+        WHERE tp.user_id = ?
+      )
+    `, [userId]);
+
+      return tournaments;
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: "Erreur lors de la récupération des tournois disponibles" });
+    }
+  });
 }
