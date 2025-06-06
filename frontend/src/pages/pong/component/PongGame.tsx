@@ -130,20 +130,28 @@ export default function PongGame() {
 	}, []);
 
 	return (
-		<div>
-			<h1 className="text-center text-xl font-bold">Pong</h1>
-			<div className="flex justify-center my-2 text-lg font-mono">
-				<span className="mx-4">Player 1: {leftScore}</span>
-				<span className="mx-4">Player 2: {rightScore}</span>
-			</div>
-			<div className="flex justify-center mt-2">
-				<canvas
-					ref={canvasRef}
-					width={600}
-					height={400}
-					style={{ border: '1px solid black' }}
-				/>
+		<div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-gradient-to-br from-black via-gray-900 to-black p-4">
+			<h1 className="text-center text-3xl font-bold text-cyan-400 font-mono mb-6 drop-shadow-lg">
+				Pong Game
+			</h1>
+
+			<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-3xl">
+				<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-6 text-white font-mono flex flex-col gap-6 items-center">
+					
+					<div className="flex justify-between w-full text-lg text-cyan-200">
+						<span>Player 1: {leftScore}</span>
+						<span>Player 2: {rightScore}</span>
+					</div>
+
+					<canvas
+						ref={canvasRef}
+						width={600}
+						height={400}
+						className="border border-cyan-400 rounded-xl shadow-md"
+					/>
+				</div>
 			</div>
 		</div>
 	);
+
 }
