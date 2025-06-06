@@ -4,6 +4,10 @@ export default function PongGame() {
 	const canvasRef = useRef(null);
 	const [leftScore, setLeftScore] = useState(0);
 	const [rightScore, setRightScore] = useState(0);
+
+	const ballColor = useRef('white');
+	const ballShadowBlur = useRef(10); // flou initial
+
 	// const [keys, setKeys] = useState({});
 
 	const paddleHeight = 80;
@@ -38,6 +42,7 @@ export default function PongGame() {
 			else setRightScore((s) => s + 1);
 
 			ballSpeedMultiplier.current = 1
+			ballShadowBlur.current = 10;
 
 			ball.current = {
 				x: canvasWidth / 2,
@@ -45,6 +50,9 @@ export default function PongGame() {
 				vx: (Math.random() > 0.5 ? 1 : -1) * baseSpeed,
 				vy: (Math.random() > 0.5 ? 1 : -1) * baseSpeed * 0.5,
 			};
+			
+			ballColor.current = 'white'; // reset color on score
+
 		};
 
 		// Fonction utilitaire
@@ -92,7 +100,10 @@ export default function PongGame() {
 				ball.current.vy = -speed * Math.sin(angle);
 				ball.current.x = leftPaddle.current.x + paddleWidth;
 
-				ballSpeedMultiplier.current += 0.3
+				ballSpeedMultiplier.current += 0.1
+
+				ballColor.current = 'cyan'; // Mettre à jour la couleur de la balle
+				ballShadowBlur.current = Math.min(ballShadowBlur.current + 5, 50); // limite max 50
 			}
 
 			// Right paddle collision
@@ -105,7 +116,10 @@ export default function PongGame() {
 				ball.current.vy = -speed * Math.sin(angle);
 				ball.current.x = rightPaddle.current.x - 10;
 
-				ballSpeedMultiplier.current += 0.3;
+				ballSpeedMultiplier.current += 0.1;
+
+				ballColor.current = 'magenta'; // Mettre à jour la couleur de la balle
+				ballShadowBlur.current = Math.min(ballShadowBlur.current + 5, 50); // limite max 50
 			}
 
 			// Score if out
@@ -114,9 +128,29 @@ export default function PongGame() {
 
 			// Draw
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
+
+			// Draw ball
+			context.shadowColor = ballColor.current;
+			context.shadowBlur = ballShadowBlur.current;
+			context.fillStyle = ballColor.current;
 			context.fillRect(ball.current.x, ball.current.y, 10, 10);
+
+			// Draw left paddle with neon glow
+			context.shadowColor = 'cyan';
+			context.shadowBlur = 20;
+			context.fillStyle = 'cyan';
 			context.fillRect(leftPaddle.current.x, leftPaddle.current.y, paddleWidth, paddleHeight);
+
+			// Draw right paddle with neon glow
+			context.shadowColor = 'magenta'; // couleur différente pour contraste
+			context.shadowBlur = 20;
+			context.fillStyle = 'magenta';
 			context.fillRect(rightPaddle.current.x, rightPaddle.current.y, paddleWidth, paddleHeight);
+
+			// Reset shadows to prevent affecting other drawings
+			context.shadowColor = 'transparent';
+			context.shadowBlur = 0;
+
 
 			requestAnimationFrame(loop);
 		};
