@@ -27,6 +27,7 @@ export default function PongGame() {
 	const ballSpeedMultiplier = useRef(1); // 🔁 acceleration
 	const ballColor = useRef('white');
 	const ballShadowBlur = useRef(10); // flou initial
+	const hasBeenTouched = useRef(false);
 
 	const paddleHeight = 80;
 	const paddleWidth = 10;
@@ -80,11 +81,10 @@ export default function PongGame() {
 		}
 	};
 
-
 		const resetBall = (scoringPlayer: 'left' | 'right') => {
-			if (scoringPlayer === 'left')
+			if (scoringPlayer === 'left'  && hasBeenTouched.current)
 				setLeftScore((s) => s + 1);
-			else
+			else if (scoringPlayer === 'right'  && hasBeenTouched.current)
 				setRightScore((s) => s + 1);
 
 			createExplosion(ball.current.x, ball.current.y, ballColor.current);
@@ -100,6 +100,8 @@ export default function PongGame() {
 			};
 			
 			ballColor.current = 'white'; // reset color on score
+			
+			hasBeenTouched.current = false;
 
 		};
 
@@ -151,11 +153,13 @@ export default function PongGame() {
 				ball.current.vx = speed * Math.cos(angle);
 				ball.current.vy = -speed * Math.sin(angle);
 				ball.current.x = leftPaddle.current.x + paddleWidth;
-
+				
 				ballSpeedMultiplier.current += 0.1
-
+				
 				ballColor.current = 'cyan'; // Mettre à jour la couleur de la balle
 				ballShadowBlur.current = Math.min(ballShadowBlur.current + 5, 50); // limite max 50
+				
+				hasBeenTouched.current = true;
 			}
 
 			// Right paddle collision
@@ -172,6 +176,8 @@ export default function PongGame() {
 
 				ballColor.current = 'magenta'; // Mettre à jour la couleur de la balle
 				ballShadowBlur.current = Math.min(ballShadowBlur.current + 5, 50); // limite max 50
+
+				hasBeenTouched.current = true;
 			}
 
 			// Score if out
@@ -251,11 +257,13 @@ export default function PongGame() {
 
 	return (
 		<div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-gradient-to-br from-black via-gray-900 to-black p-4">
+			
 			<h1 className="text-center text-3xl font-bold text-cyan-400 font-mono mb-6 drop-shadow-lg">
 				Pong Game
 			</h1>
 
 			<div className="bg-cyan-500 p-1 rounded-2xl shadow-2xl w-full max-w-3xl">
+				
 				<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-6 text-white font-mono flex flex-col gap-6 items-center">
 					
 					<div className="flex justify-between w-full text-lg">
@@ -269,13 +277,12 @@ export default function PongGame() {
 						height={400}
 						className="border border-cyan-400 rounded-xl shadow-md"
 					/>
+
 				</div>
+			
 			</div>
+		
 		</div>
 	);
 
 }
-
-/*
-	nombre de particules relatif a la vitesse de la balle & durée des particules relative à la durée de la partie
-*/
