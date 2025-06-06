@@ -47,7 +47,7 @@ export default function TournamentButton() {
 			{isAuthenticated && (
 				<>
 					<button onClick={() => navigate('/tournament')} className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold px-4 py-2 rounded shadow" >
-						Tournoi
+						Tournament
 					</button>
 				</>
 			)}
