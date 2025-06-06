@@ -34,17 +34,11 @@ const Tournament: React.FC = () => {
 	const navigate = useNavigate();
 
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
+
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 		const cleanup = initParticles(canvas);
-
-		// Vérifie si un token est présent (tu peux améliorer avec un appel backend si besoin)
-    	const token = localStorage.getItem('jwt_token');
-		console.log('Token présent ?', token);
-    	setIsAuthenticated(!!token);
-
 		return cleanup;
 	}, []);
 
@@ -54,21 +48,13 @@ const Tournament: React.FC = () => {
 				<button onClick={() => navigate('/')} className="absolute top-4 left-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 z-20">
 					← Back to Home
 				</button>
-				<div className="flex-grow overflow-auto p-6">
-					{isAuthenticated && (
-						<>
-							<TournamentBracket matches={sampleMatches} />
-						</>
-					)}
+				<div className="flex-grow overflow-auto p-6">				
+							<TournamentBracket matches={sampleMatches} />					
       			</div>
-				<div className="fixed top-0 right-0 h-screen w-72 flex flex-col justify-between z-10">
-					{isAuthenticated && (
-						<>
+				<div className="fixed top-0 right-0 h-screen w-72 flex flex-col justify-between z-10">					
 							<CreateTournamentBox />
 							<TournamentListBox />
-							<JoinTournamentBox />
-						</>
-					)}
+							<JoinTournamentBox />						
 			</div>
 		</div>
 	);
