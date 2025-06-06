@@ -22,7 +22,10 @@ export default function PongGame() {
 
 	const [leftScore, setLeftScore] = useState(0);
 	const [rightScore, setRightScore] = useState(0);
-	
+
+	const leftScoreRef = useRef(0);
+	const rightScoreRef = useRef(0);
+
 	const ball = useRef({ x: canvasWidth / 2, y: canvasHeight / 2, vx: 3, vy: 2 });
 	const ballSpeedMultiplier = useRef(1); // 🔁 acceleration
 	const ballColor = useRef('white');
@@ -60,8 +63,8 @@ export default function PongGame() {
 		const currentSpeed = Math.hypot(ball.current.vx, ball.current.vy);
 		const normalizedSpeed = Math.min(currentSpeed / 500, 2); // Cap à 2x pour éviter l'excès
 
-		const count = Math.floor(300 * normalizedSpeed); // Plus de particules si plus rapide
-		const baseLifetime = 1.2; // secondes
+		const count = Math.floor(200 * normalizedSpeed); // Plus de particules si plus rapide
+		const baseLifetime = 0.8; // secondes
 		const lifetimeMultiplier = Math.min(1 + elapsed / 60, 2); // max ×2 après 60s de jeu
 
 		for (let i = 0; i < count; i++) {
@@ -83,13 +86,21 @@ export default function PongGame() {
 
 		const resetBall = (scoringPlayer: 'left' | 'right') => {
 			if (scoringPlayer === 'left'  && hasBeenTouched.current)
-				setLeftScore((s) => s + 1);
+				setLeftScore((s) => {
+					leftScoreRef.current = s + 1;
+					return s + 1;
+				});
 			else if (scoringPlayer === 'right'  && hasBeenTouched.current)
-				setRightScore((s) => s + 1);
+				setRightScore((s) => {
+					rightScoreRef.current = s + 1;
+					return s + 1;
+				});
 
 			createExplosion(ball.current.x, ball.current.y, ballColor.current);
 
-			ballSpeedMultiplier.current = 1
+			const totalScore = leftScoreRef.current + rightScoreRef.current;
+			ballSpeedMultiplier.current = 1 + totalScore * 0.1; // +10% par point
+
 			ballShadowBlur.current = 10;
 
 			ball.current = {
