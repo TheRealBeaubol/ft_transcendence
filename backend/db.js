@@ -56,8 +56,11 @@ export async function initDb() {
 			tournament_id INTEGER,
 			player1_id INTEGER,
 			player2_id INTEGER,
+			score1 INTEGER DEFAULT 0,
+			score2 INTEGER DEFAULT 0,
 			winner_id INTEGER,
-			round INTEGER,
+			round INTEGER NOT NULL,
+			status TEXT DEFAULT 'pending', -- pending, ongoing, completed
 			is_finished BOOLEAN DEFAULT 0,
 			FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
 			FOREIGN KEY (player1_id) REFERENCES users(id),
