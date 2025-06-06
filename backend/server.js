@@ -36,6 +36,7 @@ let db;
 
 (async () => {
 	db = await initDb();
+	fastify.decorate('db', db);
 	fastify.log.info("Base SQLite initialisée");
 
 	await fastify.register(profileRoutes);

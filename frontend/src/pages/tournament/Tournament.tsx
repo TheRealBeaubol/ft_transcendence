@@ -4,6 +4,7 @@ import { initParticles } from '../utils/particles';
 import CreateTournamentBox from './components/CreateTournamentBox';
 import JoinTournamentBox from './components/JoinTournamentBox';			
 import TournamentBracket from './components/TournamentBracket';
+import TournamentListBox from './components/TournamentListBox';
 
 const samplePlayers = [
   { id: 1, username: 'Alice', avatar: 'https://i.pinimg.com/1200x/35/99/27/359927d1398df943a13c227ae0468357.jpg' },
@@ -64,6 +65,7 @@ const Tournament: React.FC = () => {
 					{isAuthenticated && (
 						<>
 							<CreateTournamentBox />
+							<TournamentListBox />
 							<JoinTournamentBox />
 						</>
 					)}

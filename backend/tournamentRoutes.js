@@ -41,4 +41,14 @@ export default async function tournamentRoutes(fastify) {
       return reply.status(500).send({ error: 'Erreur lors de la récupération du tournoi' });
     }
   });
+
+  fastify.get('/api/tournaments', async (request, reply) => {
+    try {
+      const rows = await fastify.db.all('SELECT id, name FROM tournaments');
+      return rows;
+    } catch (err) {
+      request.log.error(err);
+      reply.code(500).send({ error: 'Erreur lors de la récupération des tournois' });
+    }
+  });
 }
