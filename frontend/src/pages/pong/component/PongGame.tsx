@@ -12,6 +12,8 @@ export default function PongGame() {
 		return colorMap[colorName] || '255, 255, 255';
 	}
 
+	const gameStartTime = useRef(performance.now()); // pour suivre la durée de la partie
+
 	const canvasRef = useRef(null);
 	const canvasWidth = 600;
 	const canvasHeight = 400;
@@ -51,11 +53,20 @@ export default function PongGame() {
 		const paddleSpeed = 300;
 
 		const createExplosion = (x, y, color) => {
-			const count = 300;
-			for (let i = 0; i < count; i++) {
-				const angle = Math.random() * 2 * Math.PI;
-				const speed = Math.random() * 200 + 100;
-				particles.current.push({
+		const now = performance.now();
+		const elapsed = (now - gameStartTime.current) / 1000; // en secondes
+
+		const currentSpeed = Math.hypot(ball.current.vx, ball.current.vy);
+		const normalizedSpeed = Math.min(currentSpeed / 500, 2); // Cap à 2x pour éviter l'excès
+
+		const count = Math.floor(300 * normalizedSpeed); // Plus de particules si plus rapide
+		const baseLifetime = 1.2; // secondes
+		const lifetimeMultiplier = Math.min(1 + elapsed / 60, 2); // max ×2 après 60s de jeu
+
+		for (let i = 0; i < count; i++) {
+			const angle = Math.random() * 2 * Math.PI;
+			const speed = Math.random() * 200 + 100;
+			particles.current.push({
 				x,
 				y,
 				vx: Math.cos(angle) * speed,
@@ -63,9 +74,12 @@ export default function PongGame() {
 				opacity: 1,
 				color,
 				size: Math.random() * 4 + 2,
-				});
-			}
-		};
+				lifetime: baseLifetime * lifetimeMultiplier, // durée spécifique à chaque particule
+				age: 0
+			});
+		}
+	};
+
 
 		const resetBall = (scoringPlayer: 'left' | 'right') => {
 			if (scoringPlayer === 'left')
@@ -168,30 +182,25 @@ export default function PongGame() {
 
 			// Mise à jour particules
 			particles.current = particles.current.filter(p => p.opacity > 0);
-			// particles.current.forEach(p => {
-			// 	p.x += p.vx * delta;
-			// 	p.y += p.vy * delta;
-			// 	p.opacity -= delta * 0.5; // disparition en 1 sec environ
-			// });
 			particles.current.forEach(p => {
 				p.x += p.vx * delta;
 				p.y += p.vy * delta;
 
-				// Rebond sur les bords horizontaux
 				if (p.x <= 0 || p.x >= canvasWidth) {
 					p.vx *= -1;
-					p.x = Math.max(0, Math.min(canvasWidth, p.x)); // évite les débordements
+					p.x = Math.max(0, Math.min(canvasWidth, p.x));
 				}
-
-				// Rebond sur les bords verticaux
 				if (p.y <= 0 || p.y >= canvasHeight) {
 					p.vy *= -1;
-					p.y = Math.max(0, Math.min(canvasHeight, p.y)); // évite les débordements
+					p.y = Math.max(0, Math.min(canvasHeight, p.y));
 				}
 
-				p.opacity -= delta * 1*0.5;
+				p.age += delta;
+				p.opacity = Math.max(0, 1 - p.age / p.lifetime); // déclin progressif
 			});
 
+			// Nettoyage des particules mortes
+			particles.current = particles.current.filter(p => p.opacity > 0);
 
 			// Draw
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -250,8 +259,8 @@ export default function PongGame() {
 				<div className="bg-black bg-opacity-80 rounded-2xl px-8 py-6 text-white font-mono flex flex-col gap-6 items-center">
 					
 					<div className="flex justify-between w-full text-lg">
-						<span style={{ textShadow: '0 0 16px cyan, 0 0 16px cyan', color: 'cyan' }}>Player 1: {leftScore}</span>
-						<span  style={{ textShadow: '0 0 16px magenta, 0 0 16px magenta', color: 'magenta' }}>Player 2: {rightScore}</span>
+						<span style={{ textShadow: '0 0 16px cyan, 0 0 16px cyan', color: 'cyan' }}>Player 1: <strong>{leftScore}</strong></span>
+						<span  style={{ textShadow: '0 0 16px magenta, 0 0 16px magenta', color: 'magenta' }}>Player 2: <strong>{rightScore}</strong></span>
 					</div>
 
 					<canvas
@@ -266,3 +275,7 @@ export default function PongGame() {
 	);
 
 }
+
+/*
+	nombre de particules relatif a la vitesse de la balle & durée des particules relative à la durée de la partie
+*/
