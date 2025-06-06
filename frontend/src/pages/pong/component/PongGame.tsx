@@ -14,6 +14,7 @@ export default function PongGame() {
 	const leftPaddle = useRef({ x: 10, y: canvasHeight / 2 - paddleHeight / 2 });
 	const rightPaddle = useRef({ x: canvasWidth - 20, y: canvasHeight / 2 - paddleHeight / 2 });
 	const ball = useRef({ x: canvasWidth / 2, y: canvasHeight / 2, vx: 3, vy: 2 });
+	const ballSpeedMultiplier = useRef(1); // 🔁 acceleration
 
 	useEffect(() => {
 		const keysPressed: Record<string, boolean> = {};
@@ -25,20 +26,24 @@ export default function PongGame() {
 		window.addEventListener('keyup', handleKeyUp);
 
 		const context = canvasRef.current!.getContext('2d')!;
+		if (!context) return;
 		let lastTime = performance.now();
 
-		const speed = 200; // pixels per second
+		const baseSpeed = 200;
+		// const speed = 200; // pixels per second
 		const paddleSpeed = 300;
 
 		const resetBall = (scoringPlayer: 'left' | 'right') => {
 			if (scoringPlayer === 'left') setLeftScore((s) => s + 1);
 			else setRightScore((s) => s + 1);
 
+			ballSpeedMultiplier.current = 1
+
 			ball.current = {
 				x: canvasWidth / 2,
 				y: canvasHeight / 2,
-				vx: (Math.random() > 0.5 ? 1 : -1) * speed,
-				vy: (Math.random() > 0.5 ? 1 : -1) * speed * 0.5,
+				vx: (Math.random() > 0.5 ? 1 : -1) * baseSpeed,
+				vy: (Math.random() > 0.5 ? 1 : -1) * baseSpeed * 0.5,
 			};
 		};
 
@@ -57,25 +62,28 @@ export default function PongGame() {
 			leftPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, leftPaddle.current.y));
 			rightPaddle.current.y = Math.max(0, Math.min(canvasHeight - paddleHeight, rightPaddle.current.y));
 
-			// Ball movement
-			ball.current.x += ball.current.vx * delta;
-			ball.current.y += ball.current.vy * delta;
+			// Move ball
+			ball.current.x += ball.current.vx * delta * ballSpeedMultiplier.current;
+			ball.current.y += ball.current.vy * delta * ballSpeedMultiplier.current;
 
 			// Bounce top/bottom
 			if (ball.current.y <= 0 || ball.current.y >= canvasHeight - 10)
 				ball.current.vy *= -1;
 
-			// Paddle collision
+			// Left paddle collision
 			if ( ball.current.x <= leftPaddle.current.x + paddleWidth && ball.current.y >= leftPaddle.current.y && ball.current.y <= leftPaddle.current.y + paddleHeight )
 			{
 				ball.current.vx *= -1;
 				ball.current.x = leftPaddle.current.x + paddleWidth;
+				ballSpeedMultiplier.current += 0.1; // 🚀 accélération
 			}
 
+			// Right paddle collision
 			if ( ball.current.x + 10 >= rightPaddle.current.x && ball.current.y >= rightPaddle.current.y && ball.current.y <= rightPaddle.current.y + paddleHeight)
 			{
 				ball.current.vx *= -1;
 				ball.current.x = rightPaddle.current.x - 10;
+				ballSpeedMultiplier.current += 0.1; // 🚀 accélération
 			}
 
 			// Score if out
@@ -91,13 +99,12 @@ export default function PongGame() {
 			requestAnimationFrame(loop);
 		};
 
-		// Initial ball velocity
-		ball.current.vx = speed * (Math.random() > 0.5 ? 1 : -1);
-		ball.current.vy = speed * 0.5 * (Math.random() > 0.5 ? 1 : -1);
-
+		resetBall(Math.random() > 0.5 ? 'left' : 'right'); // start random direction
+		
 		requestAnimationFrame(loop);
 
 		return () => { window.removeEventListener('keydown', handleKeyDown); window.removeEventListener('keyup', handleKeyUp); };
+	
 	}, []);
 
 	return (
