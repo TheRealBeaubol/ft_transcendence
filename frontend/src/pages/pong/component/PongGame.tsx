@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export default function PongGame() {
 	const canvasRef = useRef(null);
-	const [keys, setKeys] = useState({});
+	const [leftScore, setLeftScore] = useState(0);
+	const [rightScore, setRightScore] = useState(0);
+	// const [keys, setKeys] = useState({});
 
 	const paddleHeight = 80;
 	const paddleWidth = 10;
@@ -27,6 +29,18 @@ export default function PongGame() {
 
 		const speed = 200; // pixels per second
 		const paddleSpeed = 300;
+
+		const resetBall = (scoringPlayer: 'left' | 'right') => {
+			if (scoringPlayer === 'left') setLeftScore((s) => s + 1);
+			else setRightScore((s) => s + 1);
+
+			ball.current = {
+				x: canvasWidth / 2,
+				y: canvasHeight / 2,
+				vx: (Math.random() > 0.5 ? 1 : -1) * speed,
+				vy: (Math.random() > 0.5 ? 1 : -1) * speed * 0.5,
+			};
+		};
 
 		const loop = (time: number) => {
 
@@ -64,16 +78,9 @@ export default function PongGame() {
 				ball.current.x = rightPaddle.current.x - 10;
 			}
 
-			// Reset if out
-			if (ball.current.x < 0 || ball.current.x > canvasWidth)
-			{
-				ball.current = {
-					x: canvasWidth / 2,
-					y: canvasHeight / 2,
-					vx: (Math.random() > 0.5 ? 1 : -1) * speed,
-					vy: (Math.random() > 0.5 ? 1 : -1) * speed * 0.5,
-				};
-			}
+			// Score if out
+			if (ball.current.x < 0) resetBall('right');
+			if (ball.current.x > canvasWidth) resetBall('left');
 
 			// Draw
 			context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -95,8 +102,12 @@ export default function PongGame() {
 
 	return (
 		<div>
-			<h1>test</h1>
-			<div className="flex justify-center mt-4">
+			<h1 className="text-center text-xl font-bold">Pong</h1>
+			<div className="flex justify-center my-2 text-lg font-mono">
+				<span className="mx-4">Player 1: {leftScore}</span>
+				<span className="mx-4">Player 2: {rightScore}</span>
+			</div>
+			<div className="flex justify-center mt-2">
 				<canvas
 					ref={canvasRef}
 					width={600}
