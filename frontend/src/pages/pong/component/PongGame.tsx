@@ -267,7 +267,7 @@ export default function PongGame() {
 	}, []);
 
 	return (
-		<div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-gradient-to-br from-black via-gray-900 to-black p-4">
+		<div className="flex flex-col items-center justify-center h-screen">
 			
 			<h1 className="text-center text-3xl font-bold text-cyan-400 font-mono mb-6 drop-shadow-lg">
 				Pong Game
