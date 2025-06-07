@@ -72,9 +72,16 @@ export default async function friendRoutes(fastify) {
 		const userId = request.user.id;
 		const { friendUsername } = request.body;
 
+		if (friendUsername === "") return reply.status(400).send({ error: "Nom d’utilisateur de l’ami requis" });
 		const friend = await db.get('SELECT id FROM users WHERE username = ?', friendUsername);
 		if (!friend) return reply.status(400).send({ error: "Utilisateur introuvable" });
 		if (friend.id === userId) return reply.status(400).send({ error: "Impossible de s'ajouter soi-même" });
+
+		const existingFriendship = await db.get(
+			`SELECT 1 FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)`,
+			[userId, friend.id, friend.id, userId]
+		);
+		if (existingFriendship) return reply.status(400).send({ error: "Ami déjà ajouté" });
 
 		const existing = await db.get(
 			'SELECT * FROM friend_requests WHERE requester_id = ? AND receiver_id = ? AND status = "pending"',

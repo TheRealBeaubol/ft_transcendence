@@ -12,6 +12,10 @@ function Pong() {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 		const cleanup = initParticles(canvas);
+		const token = localStorage.getItem('jwt_token');
+		if (!token) {
+			navigate('/');
+		}
 		return cleanup;
 	}, []);
 	return (

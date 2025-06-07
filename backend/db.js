@@ -53,7 +53,7 @@ export async function initDb() {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		);
 		CREATE TABLE IF NOT EXISTS tournament_matches (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,;CREATE TABLE test(id INT);
 			tournament_id INTEGER,
 			player1_id INTEGER,
 			player2_id INTEGER,

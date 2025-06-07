@@ -136,3 +136,15 @@ Nouvel table friend
 			db = test1 test blocked
 		
 		------
+
+
+
+
+Pop up :
+		delete friend
+		friend request
+	CSS a modifier
+
+demande d'ami a un compte deja ami ?!?
+
+Acces a des pages ou on est pas censé car on est deja login
