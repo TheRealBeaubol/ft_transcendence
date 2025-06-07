@@ -6,6 +6,9 @@ import dotenv from "dotenv";
 import { initDb, openDb } from "./db.js";
 import profileRoutes from "./profileRoutes.js";
 import friendRoutes from "./friendRoutes.js";
+import createTournamentRoutes from "./createTournamentRoutes.js";
+import joinTournamentRoutes from "./joinTournamentRoutes.js";
+import tournamentRoutes from "./tournamentRoutes.js";
 import socketRoutes from './socketRoutes.js';
 import fastifyCors from "@fastify/cors";
 import { activeUsers } from "./socketRoutes.js";
@@ -100,10 +103,14 @@ let db;
 
 (async () => {
 	db = await initDb();
+	fastify.decorate('db', db);
 	fastify.log.info("Base SQLite initialisée");
 
 	await fastify.register(profileRoutes);
 	await fastify.register(friendRoutes);
+	await fastify.register(createTournamentRoutes);
+	await fastify.register(joinTournamentRoutes);
+	await fastify.register(tournamentRoutes);
 
 	fastify.get("/api/", async () => ({ message: "Pong API ready!" }));
 

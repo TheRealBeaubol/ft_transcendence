@@ -9,6 +9,7 @@ import Site from './pages/site/site';
 import Pong from './pages/pong/Pong';
 import './i18n'
 import { UserProvider } from './UserContext';
+import Tournament from './pages/tournament/Tournament';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<UserProvider>
@@ -18,8 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<Route path="/home" element={<Home />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/register" element={<Register />} />
-				<Route path="/profile" element={<Profile />} />
+				<Route path="/profile" element={<Profile />} />					
 				<Route path="/pong" element={<Pong />} />
+				<Route path="/tournament" element={<Tournament />} />
 			</Routes>
 		</BrowserRouter>
 	</UserProvider>
